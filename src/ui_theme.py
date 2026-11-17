@@ -129,12 +129,29 @@ def inject_css() -> str:
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] {{
         background: {green_on} !important;
-        color: white !important;
+        color: #052E16 !important;
         box-shadow: 0 4px 14px rgba(34,197,94,0.45),
             inset 0 -2px 0 rgba(0,0,0,0.08) !important;
     }}
-    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"]:hover {{
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"],
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] div,
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] p {{
+        color: #052E16 !important;
+        -webkit-text-fill-color: #052E16 !important;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"],
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"] > div {{
+        background: transparent !important;
         color: #E2E8F0 !important;
+        box-shadow: none !important;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"] p {{
+        color: #E2E8F0 !important;
+        -webkit-text-fill-color: #E2E8F0 !important;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"]:hover {{
+        color: #F8FAFC !important;
+        background: rgba(255,255,255,0.06) !important;
     }}
     /* Horizontal radio fallback */
     div[data-testid="stSidebar"] .stRadio > div {{
@@ -256,6 +273,89 @@ def inject_css() -> str:
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: {COLORS["slate"]};
+    }}
+    .mt-tip {{
+        position: relative;
+        cursor: help;
+    }}
+    .mt-tip::after {{
+        content: attr(data-tip);
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 8px);
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 260px;
+        padding: 0.45rem 0.65rem;
+        font-size: 0.74rem;
+        line-height: 1.35;
+        font-weight: 500;
+        color: #F8FAFC;
+        background: #0F172A;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.22);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.15s ease, visibility 0.15s ease;
+        z-index: 50;
+        text-transform: none;
+        letter-spacing: normal;
+        text-align: left;
+    }}
+    .mt-tip:hover::after {{
+        opacity: 1;
+        visibility: visible;
+    }}
+    .mt-kpi.mt-tip::after {{
+        white-space: normal;
+    }}
+    .mt-insight-note {{
+        background: #E0F2FE;
+        border: 1px solid #BAE6FD;
+        color: #0C4A6E;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        font-size: 0.92rem;
+        margin: 0.5rem 0 1rem;
+    }}
+    .mt-insight-nav-label {{
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: {COLORS["slate"]};
+        margin: 0 0 0.35rem 0;
+    }}
+    .mt-section-head {{
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0 0.25rem;
+    }}
+    .mt-section-head h3 {{
+        margin: 0;
+        font-size: 1.05rem;
+        color: {COLORS["navy"]};
+    }}
+    .mt-info-dot {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        font-weight: 800;
+        background: {COLORS["navy"]};
+        color: white;
+        flex-shrink: 0;
+    }}
+    .mt-info-dot::after {{
+        bottom: calc(100% + 6px);
+        left: 0;
+        transform: none;
     }}
 </style>
 """

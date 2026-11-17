@@ -39,7 +39,11 @@ from src.ui_components import (
     EXAMPLE_PROFILES,
     hero,
     init_session_defaults,
+    insight_note,
+    kpi_grid,
     render_env_switch,
+    render_insight_nav,
+    section_heading,
     threshold_gauge,
     timeline_block,
     verdict_stamp,
@@ -72,16 +76,8 @@ def cached_dataset() -> pd.DataFrame:
 def sidebar_brand() -> None:
     st.sidebar.markdown("## MindTrack")
     st.sidebar.caption("Riesgo académico · hábitos digitales y bienestar")
-    env = render_env_switch()
+    render_env_switch()
     st.sidebar.markdown("---")
-    if env == "LAB":
-        st.sidebar.markdown("**Navegación Insight**")
-        st.session_state.lab_section = st.sidebar.radio(
-            "Sección",
-            LAB_SECTIONS,
-            index=LAB_SECTIONS.index(st.session_state.lab_section),
-            label_visibility="collapsed",
-        )
     st.sidebar.markdown(
         "<span class='mt-badge'>Motor PRD: XGBoost</span>",
         unsafe_allow_html=True,
@@ -253,25 +249,43 @@ def lab_panorama(meta: dict) -> None:
     val = meta.get("validation_metrics", [])
     xgb_val = next((m for m in val if m["Modelo"] == "XGBoost"), {})
     risk_pct = cached_dataset()[TARGET].mean() * 100
-    st.markdown(
-        f"""
-        <div class="mt-kpi-grid">
-            <motion-div class="mt-kpi"><b>15,000</b><span>Registros</span></div>
-            <motion-div class="mt-kpi"><b>{risk_pct:.1f}%</b><span>Clase 1 en datos</span></div>
-            <motion-div class="mt-kpi"><b>{xgb_val.get('Recall (C1)', 0):.3f}</b><span>Recall XGB · Val</span></div>
-            <motion-div class="mt-kpi"><b>{test.get('Recall (C1)', 0):.3f}</b><span>Recall XGB · Test</span></motion-div>
-        </div>
-        """.replace("motion-div", "div"),
-        unsafe_allow_html=True,
+    kpi_grid(
+        [
+            (
+                "15,000",
+                "Registros",
+                "Conteo total en data/academic_risk_dataset.csv (mismo archivo del EDA).",
+            ),
+            (
+                f"{risk_pct:.1f}%",
+                "Clase 1 en datos",
+                "Promedio de Academic_Failure_Risk=1 en el CSV (desbalance ~94/6).",
+            ),
+            (
+                f"{xgb_val.get('Recall (C1)', 0):.3f}",
+                "Recall XGB · Val",
+                "models/metadata.json → validation_metrics (partición 15 % Validation).",
+            ),
+            (
+                f"{test.get('Recall (C1)', 0):.3f}",
+                "Recall XGB · Test",
+                "metadata test_metrics_production o reports/evaluation_test_xgboost.csv.",
+            ),
+        ]
     )
-    st.info(
+    insight_note(
         f"Experimento exportado · split 70/15/15 · seed {meta['random_state']} · "
-        f"Recall objetivo {meta['recall_target']} · producción = **XGBoost**."
+        f"Recall objetivo {meta['recall_target']} · producción = XGBoost.",
+        "Generado con scripts/train_and_export.py y versionado en el repo; Insight no reentrena.",
     )
 
 
 def lab_huella() -> None:
     df = cached_dataset()
+    section_heading(
+        "Huella de datos",
+        "Gráficas en vivo con Plotly leyendo el CSV local; mismos datos del Entregable 2.",
+    )
     st.caption(f"Dataset: `data/academic_risk_dataset.csv` · {len(df):,} filas.")
     c1, c2 = st.columns(2)
     with c1:
@@ -307,6 +321,10 @@ def lab_huella() -> None:
 
 
 def lab_trazabilidad() -> None:
+    section_heading(
+        "Trazabilidad ML",
+        "Resumen documental alineado a notebooks; cada paso tiene viñeta al pasar el cursor.",
+    )
     st.markdown(
         "Cadena de decisiones del proyecto MindTrack (Entregables 2 y 3). "
         "Sin reentrenamiento en esta interfaz."
@@ -315,6 +333,10 @@ def lab_trazabilidad() -> None:
 
 
 def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
+    section_heading(
+        "Arena de modelos",
+        "Tablas y gráficas desde reports/comparison_validation.csv + metadata.json.",
+    )
     st.dataframe(comparison, use_container_width=True, hide_index=True)
 
     metric_choice = st.selectbox(
@@ -363,7 +385,7 @@ def render_lab() -> None:
         st.error("Faltan `reports/comparison_validation.csv` o `models/metadata.json`.")
         return
     comparison, meta = data
-    section = st.session_state.lab_section
+    section = render_insight_nav(LAB_SECTIONS)
 
     if section == "Panorama":
         lab_panorama(meta)
