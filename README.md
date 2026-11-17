@@ -90,10 +90,9 @@ streamlit run app/streamlit_app.py
 
 Abrir en Colab (tras push a GitHub):
 
-```text
-https://colab.research.google.com/github/<USUARIO>/MindTrack/blob/main/notebooks/MindTrack_EDA_Preprocesamiento.ipynb
-https://colab.research.google.com/github/<USUARIO>/MindTrack/blob/main/notebooks/MindTrack_03_Comparacion_Modelos.ipynb
-```
+- Repo: https://github.com/Danielhsk/MindTrack  
+- [Entregable 2 en Colab](https://colab.research.google.com/github/Danielhsk/MindTrack/blob/main/notebooks/MindTrack_EDA_Preprocesamiento.ipynb)  
+- [Entregable 3 en Colab](https://colab.research.google.com/github/Danielhsk/MindTrack/blob/main/notebooks/MindTrack_03_Comparacion_Modelos.ipynb)
 
 ---
 
