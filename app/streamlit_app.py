@@ -79,6 +79,7 @@ def cached_dataset() -> pd.DataFrame:
 
 
 def sidebar_brand() -> None:
+    """Sidebar: marca arriba, luego ambiente y motor (espaciado v2.3)."""
     render_sidebar_brand()
     render_env_switch()
     render_sidebar_status()

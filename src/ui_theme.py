@@ -7,7 +7,7 @@ def inject_css() -> str:
     green_on = "#22C55E"
     track_off = "#E8ECF1"
     return f"""
-<!-- MindTrack UI build: contrast + depth -->
+<!-- MindTrack UI · sidebar v2.3 wellness -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
     html, body, [class*="css"] {{
@@ -21,17 +21,24 @@ def inject_css() -> str:
     }}
     section[data-testid="stSidebar"] {{
         background:
-            radial-gradient(ellipse 120% 80% at -10% 0%, rgba(56,189,248,0.28), transparent 50%),
-            radial-gradient(ellipse 90% 60% at 110% 85%, rgba(129,140,248,0.22), transparent 45%),
-            radial-gradient(circle at 50% 40%, rgba(37,99,235,0.12), transparent 55%),
-            linear-gradient(188deg, #020617 0%, #0B2544 32%, {COLORS["navy"]} 58%, #0C4A6E 100%);
-        color: white;
-        border-right: 1px solid rgba(125,211,252,0.15);
-        box-shadow: inset -1px 0 0 rgba(255,255,255,0.04),
-                    4px 0 24px rgba(2,6,23,0.15);
+            radial-gradient(ellipse 90% 55% at 15% 0%, rgba(94,234,212,0.14), transparent 52%),
+            radial-gradient(ellipse 70% 50% at 100% 100%, rgba(167,243,208,0.1), transparent 48%),
+            linear-gradient(
+                178deg,
+                {COLORS["side_deep"]} 0%,
+                {COLORS["side_mid"]} 48%,
+                #1F3534 100%
+            );
+        color: #ECFDF5;
+        border-right: 1px solid rgba(110,231,183,0.12);
+        box-shadow: inset -1px 0 0 rgba(255,255,255,0.03),
+                    4px 0 22px rgba(26,46,45,0.2);
     }}
     section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-        padding: 0.85rem 0.75rem 1.5rem;
+        padding: 0.35rem 0.72rem 1.35rem;
+    }}
+    section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
+        padding-top: 0.15rem;
     }}
     /* Sin color global en sidebar (evita texto blanco sobre fondos claros). */
     section[data-testid="stSidebar"] [data-testid="stMarkdown"] p,
@@ -48,8 +55,8 @@ def inject_css() -> str:
         background: linear-gradient(
             90deg,
             transparent,
-            rgba(125,211,252,0.35),
-            rgba(129,140,248,0.25),
+            rgba(110,231,183,0.35),
+            rgba(153,246,228,0.2),
             transparent
         );
     }}
@@ -167,12 +174,12 @@ def inject_css() -> str:
     }}
   /* PRD / LAB neumorphic segmented control */
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] {{
-        background: rgba(2,6,23,0.55) !important;
+        background: rgba(26,46,45,0.72) !important;
         border-radius: 999px !important;
         padding: 5px !important;
-        box-shadow: inset 0 2px 8px rgba(0,0,0,0.45),
-                    0 0 0 1px rgba(129,140,248,0.08) !important;
-        border: 1px solid rgba(56,189,248,0.2) !important;
+        box-shadow: inset 0 2px 6px rgba(15,35,33,0.5),
+                    0 0 0 1px rgba(94,234,212,0.1) !important;
+        border: 1px solid rgba(110,231,183,0.18) !important;
         min-height: 46px;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button {{
@@ -181,8 +188,8 @@ def inject_css() -> str:
         letter-spacing: 0.08em !important;
         font-size: 0.82rem !important;
         border: none !important;
-        background: rgba(15,23,42,0.35) !important;
-        color: #CBD5E1 !important;
+        background: rgba(36,59,58,0.55) !important;
+        color: #D1FAE5 !important;
         box-shadow: none !important;
         transition: all 0.25s ease;
     }}
@@ -193,19 +200,19 @@ def inject_css() -> str:
         background: transparent !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] {{
-        background: linear-gradient(135deg, #4ADE80, #22C55E) !important;
-        color: #052E16 !important;
-        box-shadow: 0 4px 14px rgba(34,197,94,0.4),
-            inset 0 -2px 0 rgba(0,0,0,0.08) !important;
+        background: linear-gradient(135deg, #A7F3D0, #6EE7B7) !important;
+        color: #134E4A !important;
+        box-shadow: 0 4px 12px rgba(52,211,153,0.28),
+            inset 0 -2px 0 rgba(15,59,55,0.12) !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] p,
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] div {{
-        color: #052E16 !important;
-        -webkit-text-fill-color: #052E16 !important;
+        color: #134E4A !important;
+        -webkit-text-fill-color: #134E4A !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"] {{
-        background: rgba(15,23,42,0.35) !important;
-        color: #E2E8F0 !important;
+        background: rgba(36,59,58,0.55) !important;
+        color: #ECFDF5 !important;
         box-shadow: none !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"] p,
@@ -214,8 +221,8 @@ def inject_css() -> str:
         -webkit-text-fill-color: #E2E8F0 !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"]:hover {{
-        background: rgba(56,189,248,0.15) !important;
-        color: #F0F9FF !important;
+        background: rgba(94,234,212,0.14) !important;
+        color: #F0FDFA !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] > div {{
         background: transparent !important;
@@ -226,8 +233,8 @@ def inject_css() -> str:
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"],
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button:not([aria-selected="true"]) {{
-        background: rgba(15,23,42,0.72) !important;
-        color: #F1F5F9 !important;
+        background: rgba(36,59,58,0.65) !important;
+        color: #ECFDF5 !important;
     }}
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button:not([aria-selected="true"]) p,
     div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button:not([aria-selected="true"]) div,
@@ -494,114 +501,130 @@ def inject_css() -> str:
         left: 0;
         transform: none;
     }}
-    /* Sidebar brand */
+    section[data-testid="stSidebar"] .element-container:has(.mt-brand) {{
+        margin-top: 0 !important;
+        margin-bottom: 0.65rem !important;
+    }}
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {{
+        margin-bottom: 0.75rem !important;
+    }}
+    /* Sidebar brand (wellness) */
     .mt-brand {{
         position: relative;
         display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 0.85rem;
-        padding: 0.9rem 0.85rem;
+        align-items: flex-start;
+        gap: 0.72rem;
+        margin: 0;
+        padding: 0.78rem 0.82rem 0.82rem;
         border-radius: 16px;
-        border: 1px solid rgba(125,211,252,0.22);
+        border: 1px solid rgba(110,231,183,0.2);
         background: linear-gradient(
-            145deg,
-            rgba(255,255,255,0.12) 0%,
-            rgba(56,189,248,0.06) 45%,
-            rgba(99,102,241,0.08) 100%
+            150deg,
+            rgba(255,255,255,0.07) 0%,
+            rgba(94,234,212,0.05) 55%,
+            rgba(36,59,58,0.35) 100%
         );
-        box-shadow: 0 12px 28px rgba(2,6,23,0.35),
-            inset 0 1px 0 rgba(255,255,255,0.12);
+        box-shadow: 0 10px 22px rgba(15,35,33,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.08);
         overflow: hidden;
+    }}
+    .mt-brand-copy {{
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 0;
     }}
     .mt-brand-glow {{
         position: absolute;
-        right: -30px;
-        top: -40px;
-        width: 120px;
-        height: 120px;
-        background: radial-gradient(circle, rgba(56,189,248,0.35), transparent 70%);
+        left: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(94,234,212,0.22), transparent 68%);
         pointer-events: none;
+        z-index: 0;
     }}
     .mt-brand-mark {{
-        width: 50px;
-        height: 50px;
+        position: relative;
+        z-index: 1;
+        width: 48px;
+        height: 48px;
         flex-shrink: 0;
-        filter: drop-shadow(0 4px 10px rgba(56,189,248,0.35));
+        filter: drop-shadow(0 3px 8px rgba(52,211,153,0.25));
     }}
     .mt-brand-mark svg {{
         width: 100%;
         height: 100%;
     }}
     .mt-brand-title {{
-        font-size: 1.4rem;
+        font-size: 1.32rem;
         font-weight: 800;
         letter-spacing: -0.03em;
-        color: #F8FAFC !important;
-        line-height: 1.05;
-        text-shadow: 0 2px 12px rgba(56,189,248,0.25);
+        color: #F0FDFA !important;
+        line-height: 1.08;
+        text-shadow: none;
     }}
     .mt-brand-sub {{
         font-size: 0.74rem;
-        color: #BAE6FD !important;
-        margin-top: 0.2rem;
-        line-height: 1.3;
+        color: #B8E0DB !important;
+        margin-top: 0.22rem;
+        line-height: 1.38;
+        max-width: 15.5rem;
+    }}
+    .mt-brand-tags {{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.32rem;
+        margin-top: 0.5rem;
     }}
     .mt-brand-tags span {{
         display: inline-block;
-        margin-top: 0.45rem;
-        margin-right: 0.25rem;
-        font-size: 0.62rem;
+        font-size: 0.58rem;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
-        color: #7DD3FC !important;
-        padding: 0.15rem 0.45rem;
+        padding: 0.16rem 0.42rem;
         border-radius: 6px;
-        background: rgba(14,165,233,0.15);
-        border: 1px solid rgba(56,189,248,0.25);
+    }}
+    .mt-brand-tags .mt-tag-course {{
+        color: #CCFBF1 !important;
+        background: rgba(45,212,191,0.12);
+        border: 1px solid rgba(153,246,228,0.22);
     }}
     .mt-brand-tags .mt-ui-ver {{
-        color: #052E16 !important;
-        background: linear-gradient(135deg, #86EFAC, #4ADE80) !important;
-        border-color: rgba(34,197,94,0.45) !important;
-    }}
-    .mt-side-glass {{
-        border-radius: 14px;
-        border: 1px solid rgba(125,211,252,0.18);
-        background: rgba(15,23,42,0.45);
-        backdrop-filter: blur(8px);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06),
-                    0 8px 20px rgba(2,6,23,0.25);
-        margin-bottom: 0.85rem;
-        padding: 0.75rem 0.8rem;
+        color: #14532D !important;
+        background: linear-gradient(135deg, #BBF7D0, #86EFAC) !important;
+        border: 1px solid rgba(134,239,172,0.45);
     }}
     .mt-side-label {{
-        margin: 0 0 0.5rem;
-        font-size: 0.68rem;
+        margin: 0 0 0.55rem;
+        font-size: 0.65rem;
         font-weight: 800;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.13em;
         text-transform: uppercase;
-        color: #7DD3FC !important;
+        color: {COLORS["calm_sea"]} !important;
+        opacity: 0.92;
     }}
     .mt-env-hint {{
-        margin-top: 0.35rem;
+        margin-top: 0.4rem;
         margin-bottom: 0 !important;
-        padding: 0.45rem 0.55rem;
+        padding: 0.48rem 0.58rem;
         border-radius: 10px;
-        font-size: 0.76rem;
-        line-height: 1.35;
-        border: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.75rem;
+        line-height: 1.38;
+        border: 1px solid rgba(167,243,208,0.12);
     }}
     .mt-env-hint--prd {{
-        background: rgba(34,197,94,0.12);
-        color: #BBF7D0 !important;
-        border-color: rgba(34,197,94,0.22);
+        background: rgba(52,211,153,0.1);
+        color: #D1FAE5 !important;
+        border-color: rgba(110,231,183,0.22);
     }}
     .mt-env-hint--lab {{
-        background: rgba(56,189,248,0.12);
-        color: #BAE6FD !important;
-        border-color: rgba(56,189,248,0.25);
+        background: rgba(94,234,212,0.08);
+        color: #C4EDE8 !important;
+        border-color: rgba(153,246,228,0.18);
     }}
     .mt-side-status-head {{
         display: flex;
@@ -611,26 +634,27 @@ def inject_css() -> str:
         margin-bottom: 0.35rem;
     }}
     .mt-side-status-head strong {{
-        font-size: 0.95rem;
-        color: #E0F2FE !important;
+        font-size: 0.92rem;
+        color: #ECFDF5 !important;
         letter-spacing: 0.02em;
+        font-weight: 700;
     }}
     .mt-side-pill {{
-        font-size: 0.62rem;
+        font-size: 0.6rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        padding: 0.2rem 0.5rem;
+        padding: 0.2rem 0.48rem;
         border-radius: 999px;
-        color: #082F49 !important;
-        background: linear-gradient(135deg, #7DD3FC, #38BDF8);
-        box-shadow: 0 2px 8px rgba(56,189,248,0.35);
+        color: #134E4A !important;
+        background: linear-gradient(135deg, #A7F3D0, #6EE7B7);
+        box-shadow: 0 2px 6px rgba(52,211,153,0.22);
     }}
     .mt-side-note {{
-        margin: 0 0 0.55rem;
+        margin: 0 0 0.5rem;
         font-size: 0.72rem;
-        line-height: 1.4;
-        color: #94A3B8 !important;
+        line-height: 1.42;
+        color: {COLORS["side_mist"]} !important;
     }}
     .mt-side-chips {{
         display: flex;
@@ -638,13 +662,13 @@ def inject_css() -> str:
         gap: 0.35rem;
     }}
     .mt-side-chips span {{
-        font-size: 0.62rem;
+        font-size: 0.6rem;
         font-weight: 600;
-        padding: 0.18rem 0.45rem;
+        padding: 0.17rem 0.42rem;
         border-radius: 8px;
-        color: #CBD5E1 !important;
-        background: rgba(30,58,95,0.65);
-        border: 1px solid rgba(148,163,184,0.2);
+        color: #D1FAE5 !important;
+        background: rgba(36,59,58,0.75);
+        border: 1px solid rgba(110,231,183,0.16);
     }}
     div[data-testid="stSidebar"] .mt-badge {{
         background: rgba(255,255,255,0.12) !important;
@@ -767,13 +791,13 @@ def inject_css() -> str:
         color: {COLORS["slate"]} !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-side-label) {{
-        background: rgba(15,23,42,0.45);
-        border-color: rgba(125,211,252,0.22) !important;
+        background: rgba(30,52,51,0.55);
+        border-color: rgba(110,231,183,0.18) !important;
         border-radius: 14px !important;
-        padding: 0.55rem 0.65rem 0.6rem !important;
-        margin-bottom: 0.85rem;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06),
-                    0 8px 20px rgba(2,6,23,0.25);
+        padding: 0.58rem 0.62rem 0.62rem !important;
+        margin-bottom: 0.75rem !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05),
+                    0 6px 16px rgba(15,35,33,0.22);
     }}
     .mt-kpi:hover {{
         transform: translateY(-2px);
