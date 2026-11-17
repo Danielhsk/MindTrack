@@ -49,6 +49,40 @@ FORM_CATEGORICAL = {
     "Burnout_Level": BURNOUT_ORDER,
 }
 
+# Etiquetas del formulario PRD (vista en español; valores ML siguen en inglés)
+FORM_FIELD_LABELS_ES: dict[str, str] = {
+    "Age": "Edad (años)",
+    "Gender": "Género",
+    "Education_Level": "Nivel educativo",
+    "Daily_Social_Media_Hours": "Horas diarias en redes sociales",
+    "Daily_AI_Tool_Usage_Hours": "Horas diarias usando herramientas de IA",
+    "Sleep_Hours": "Horas de sueño por noche",
+    "Physical_Activity_Hours": "Horas de actividad física al día",
+    "Mental_Health_Score": "Bienestar mental (puntuación)",
+    "Physical_Health_Score": "Bienestar físico (puntuación)",
+    "Social_Isolation_Score": "Aislamiento social (escala)",
+    "Burnout_Level": "Nivel de burnout",
+}
+
+FORM_GENDER_ES: dict[str, str] = {
+    "Male": "Masculino",
+    "Female": "Femenino",
+    "Non-binary": "No binario",
+}
+
+FORM_EDUCATION_ES: dict[str, str] = {
+    "High School": "Bachillerato",
+    "College": "Técnico / tecnológico",
+    "University": "Universidad",
+}
+
+FORM_BURNOUT_ES: dict[str, str] = {
+    "Low": "Bajo",
+    "Moderate": "Moderado",
+    "High": "Alto",
+    "Severe": "Severo",
+}
+
 # Rule-engine thresholds (justified from EDA / slide profiles)
 RULE_THRESHOLDS = {
     "Sleep_Hours": {"max_ok": 6.0, "direction": "low"},

@@ -1049,6 +1049,13 @@ def inject_css() -> str:
         box-shadow: 0 7px 0 #0B1F3A, 0 18px 32px rgba(31,58,95,0.34),
                     inset 0 1px 0 rgba(255,255,255,0.15) !important;
     }}
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:active {{
+        cursor: wait !important;
+    }}
+    div[data-testid="stStatusWidget"] {{
+        border-radius: 12px !important;
+        border: 1px solid {COLORS["border"]} !important;
+    }}
     div[data-testid="stForm"] [data-baseweb="slider"] div[data-testid="stTickBar"] > div {{
         background: linear-gradient(90deg, {COLORS["sky"]}, {COLORS["navy"]}) !important;
     }}

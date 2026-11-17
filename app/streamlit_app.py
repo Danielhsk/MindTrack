@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -18,11 +19,12 @@ from src.conclusion import build_conclusion
 from src.config import (
     COLORS,
     FIGURES_DIR,
-    FORM_CATEGORICAL,
+    FORM_FIELD_LABELS_ES,
     MODELS_DIR,
     REPORTS_DIR,
     TARGET,
 )
+from src.form_ui import categorical_burnout, categorical_education, categorical_gender
 from src.explainability import top_contributions
 from src.lab_viz import (
     fig_burnout_risk,
@@ -104,33 +106,26 @@ def production_form() -> dict | None:
         ):
             st.session_state.form_preset = "alert"
 
+    field_labels = FORM_FIELD_LABELS_ES
     with st.form("student_form", clear_on_submit=False):
         c1, c2, c3 = st.columns(3)
         with c1:
             panel_heading("Perfil", "Demografía y contexto")
-            age = st.number_input("Age", 14, 40, pv["age"], 1)
-            gender = st.selectbox("Gender", FORM_CATEGORICAL["Gender"], index=FORM_CATEGORICAL["Gender"].index(pv["gender"]))
-            education = st.selectbox(
-                "Education_Level",
-                FORM_CATEGORICAL["Education_Level"],
-                index=FORM_CATEGORICAL["Education_Level"].index(pv["education"]),
-            )
+            age = st.number_input(field_labels["Age"], 14, 40, pv["age"], 1)
+            gender = categorical_gender(pv["gender"])
+            education = categorical_education(pv["education"])
         with c2:
             panel_heading("Hábitos", "Digital · sueño · actividad")
-            social = st.slider("Daily_Social_Media_Hours", 0.0, 14.0, float(pv["social"]), 0.1)
-            ai_hours = st.slider("Daily_AI_Tool_Usage_Hours", 0.0, 10.0, float(pv["ai_hours"]), 0.1)
-            sleep = st.slider("Sleep_Hours", 2.0, 12.0, float(pv["sleep"]), 0.1)
-            activity = st.slider("Physical_Activity_Hours", 0.0, 6.0, float(pv["activity"]), 0.1)
+            social = st.slider(field_labels["Daily_Social_Media_Hours"], 0.0, 14.0, float(pv["social"]), 0.1)
+            ai_hours = st.slider(field_labels["Daily_AI_Tool_Usage_Hours"], 0.0, 10.0, float(pv["ai_hours"]), 0.1)
+            sleep = st.slider(field_labels["Sleep_Hours"], 2.0, 12.0, float(pv["sleep"]), 0.1)
+            activity = st.slider(field_labels["Physical_Activity_Hours"], 0.0, 6.0, float(pv["activity"]), 0.1)
         with c3:
             panel_heading("Bienestar", "Salud y burnout")
-            mental = st.slider("Mental_Health_Score", 20.0, 100.0, float(pv["mental"]), 0.5)
-            physical = st.slider("Physical_Health_Score", 20.0, 100.0, float(pv["physical"]), 0.5)
-            isolation = st.slider("Social_Isolation_Score", 1.0, 9.0, float(pv["isolation"]), 0.1)
-            burnout = st.selectbox(
-                "Burnout_Level",
-                FORM_CATEGORICAL["Burnout_Level"],
-                index=FORM_CATEGORICAL["Burnout_Level"].index(pv["burnout"]),
-            )
+            mental = st.slider(field_labels["Mental_Health_Score"], 20.0, 100.0, float(pv["mental"]), 0.5)
+            physical = st.slider(field_labels["Physical_Health_Score"], 20.0, 100.0, float(pv["physical"]), 0.5)
+            isolation = st.slider(field_labels["Social_Isolation_Score"], 1.0, 9.0, float(pv["isolation"]), 0.1)
+            burnout = categorical_burnout(pv["burnout"])
         submitted = st.form_submit_button(
             "Ejecutar consulta MindTrack",
             use_container_width=True,
@@ -165,11 +160,20 @@ def load_lab_artifacts() -> tuple[pd.DataFrame, dict] | None:
     return comparison, meta
 
 
+def _format_model_date(iso_utc: str) -> str:
+    try:
+        dt = datetime.fromisoformat(iso_utc.replace("Z", "+00:00"))
+        return dt.strftime("%d/%m/%Y · %H:%M UTC")
+    except (TypeError, ValueError):
+        return iso_utc[:19] if iso_utc else "—"
+
+
 def render_prd() -> None:
     hero(
         "Consulta MindTrack",
-        "Inferencia en vivo con el pipeline de producción (preprocess + XGBoost). "
-        "Probabilidad de Academic_Failure_Risk, explicación y recomendaciones.",
+        "Completa el perfil del estudiante y recibe una estimación de riesgo académico, "
+        "los factores que más influyen y recomendaciones orientadas al bienestar. "
+        "La predicción oficial usa XGBoost, sin incluir la nota directa en el modelo.",
         badge="PRD",
     )
 
@@ -180,8 +184,10 @@ def render_prd() -> None:
 
     meta = load_metadata()
     tm = meta["thresholds"][meta["production_model_label"]]
+    fecha = _format_model_date(meta.get("generated_at_utc", ""))
     st.caption(
-        f"Artefactos · {meta['generated_at_utc']} · umbral Validation={tm:.4f}"
+        f"Modelo entrenado y exportado el {fecha}. "
+        f"Umbral de alerta (validación): probabilidad ≥ {tm:.1%}."
     )
 
     form = production_form()
@@ -195,14 +201,20 @@ def render_prd() -> None:
         page_footer("PRD")
         return
 
-    with st.spinner("Pipeline en ejecución..."):
+    st.toast("Procesando consulta MindTrack…", icon="⏳")
+    with st.status("Ejecutando consulta…", expanded=True) as run_status:
+        st.write("Validando y transformando los datos del perfil…")
         result = predict_student(form)
+        st.write("Calculando probabilidad con XGBoost (motor oficial)…")
         opinions = panel_opinions(form)
+        st.write("Preparando explicación, segunda opinión y recomendaciones…")
         contrib = top_contributions(form, k=8)
         recs = generate_recommendations(form)
         conclusion = build_conclusion(
             result, recs, top_factors=contrib["feature"].tolist()
         )
+        run_status.update(label="Consulta completada", state="complete", expanded=False)
+    st.success("Listo: puedes revisar la señal y el detalle a continuación.")
 
     content_divider()
     render_verdict_block(
