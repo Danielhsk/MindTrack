@@ -757,6 +757,93 @@ def inject_css() -> str:
         color: {COLORS["navy"]};
         margin: 0.25rem 0 0.35rem;
     }}
+    .mt-panel-opinion-kicker {{
+        margin: 0 0 0.2rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: {COLORS["mist"]};
+    }}
+    .mt-panel-opinion-lead {{
+        margin: 0 0 0.75rem;
+        font-size: 0.82rem;
+        color: {COLORS["slate"]};
+        line-height: 1.45;
+    }}
+    .mt-panel-opinion-card {{
+        background: linear-gradient(180deg, #FFFFFF, #F8FAFC);
+        border: 1px solid {COLORS["border"]};
+        border-radius: 14px;
+        padding: 0.75rem 0.85rem 0.7rem;
+        box-shadow: 0 6px 16px rgba(15,23,42,0.05);
+        min-height: 8.5rem;
+    }}
+    .mt-panel-opinion-head {{
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.35rem;
+        margin-bottom: 0.35rem;
+    }}
+    .mt-panel-opinion-name {{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: {COLORS["navy"]};
+        line-height: 1.25;
+    }}
+    .mt-panel-opinion-pill {{
+        font-size: 0.62rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.15rem 0.4rem;
+        border-radius: 6px;
+        white-space: nowrap;
+    }}
+    .mt-panel-opinion-pill--alert {{
+        background: #FEF3C7;
+        color: {COLORS["accent"]};
+    }}
+    .mt-panel-opinion-pill--ok {{
+        background: #DCFCE7;
+        color: {COLORS["ok"]};
+    }}
+    .mt-panel-opinion-proba {{
+        margin: 0;
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: {COLORS["navy"]};
+        letter-spacing: -0.02em;
+    }}
+    .mt-panel-opinion-track {{
+        height: 6px;
+        border-radius: 999px;
+        background: #E2E8F0;
+        overflow: hidden;
+        margin: 0.35rem 0 0.45rem;
+    }}
+    .mt-panel-opinion-track span {{
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, {COLORS["sky"]}, {COLORS["navy"]});
+    }}
+    .mt-panel-opinion-meta {{
+        margin: 0;
+        font-size: 0.72rem;
+        color: {COLORS["mist"]};
+    }}
+    .mt-panel-opinion-agree {{
+        margin: 0.85rem 0 0.15rem;
+        font-size: 0.84rem;
+        color: {COLORS["slate"]};
+        line-height: 1.45;
+        padding: 0.55rem 0.75rem;
+        border-radius: 10px;
+        background: #F1F5F9;
+        border-left: 3px solid {COLORS["navy"]};
+    }}
     .mt-fig-title {{
         font-size: 0.9rem;
         font-weight: 700;
