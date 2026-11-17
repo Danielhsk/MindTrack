@@ -16,12 +16,9 @@ if str(ROOT) not in sys.path:
 
 from src.conclusion import build_conclusion
 from src.config import (
-    ASSETS_COLAB_DIR,
-    COLAB_EDA_GALLERY,
     COLORS,
     FIGURES_DIR,
     FORM_CATEGORICAL,
-    ML_EXPORT_GALLERY,
     MODELS_DIR,
     REPORTS_DIR,
     TARGET,
@@ -393,6 +390,8 @@ def lab_huella() -> None:
     st.plotly_chart(fig_correlation_target(df), use_container_width=True)
 
     content_divider()
+    from src.colab_assets import ASSETS_COLAB_DIR, COLAB_EDA_GALLERY
+
     render_static_figure_gallery(
         COLAB_EDA_GALLERY,
         ASSETS_COLAB_DIR,
@@ -442,6 +441,8 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
         st.dataframe(pd.read_csv(test_path), use_container_width=True, hide_index=True)
 
     content_divider()
+    from src.colab_assets import ML_EXPORT_GALLERY
+
     render_static_figure_gallery(
         ML_EXPORT_GALLERY,
         FIGURES_DIR,
