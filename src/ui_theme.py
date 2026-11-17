@@ -740,15 +740,15 @@ def inject_css() -> str:
         background: linear-gradient(90deg, transparent, {COLORS["border"]}, transparent);
         margin: 1.25rem 0;
     }}
-    .mt-insight-nav-shell {{
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-insight-nav-label) {{
         background: {COLORS["white"]};
-        border: 1px solid {COLORS["border"]};
-        border-radius: 16px;
-        padding: 0.85rem 1rem 0.65rem;
+        border-color: {COLORS["border"]} !important;
+        border-radius: 16px !important;
+        padding: 0.55rem 0.75rem 0.45rem !important;
         margin-bottom: 1.1rem;
         box-shadow: 0 8px 22px rgba(15,23,42,0.05);
     }}
-    .mt-insight-nav-shell .stButton > button {{
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-insight-nav-label) .stButton > button {{
         border-radius: 12px !important;
         font-weight: 600 !important;
         font-size: 0.82rem !important;
@@ -756,15 +756,24 @@ def inject_css() -> str:
         border: 1px solid {COLORS["border"]} !important;
         transition: all 0.18s ease;
     }}
-    .mt-insight-nav-shell .stButton > button[kind="primary"] {{
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-insight-nav-label) .stButton > button[kind="primary"] {{
         background: linear-gradient(135deg, {COLORS["navy"]}, #2D4A73) !important;
         color: white !important;
         border-color: transparent !important;
         box-shadow: 0 6px 16px rgba(31,58,95,0.25);
     }}
-    .mt-insight-nav-shell .stButton > button[kind="secondary"] {{
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-insight-nav-label) .stButton > button[kind="secondary"] {{
         background: #F8FAFC !important;
         color: {COLORS["slate"]} !important;
+    }}
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-side-label) {{
+        background: rgba(15,23,42,0.45);
+        border-color: rgba(125,211,252,0.22) !important;
+        border-radius: 14px !important;
+        padding: 0.55rem 0.65rem 0.6rem !important;
+        margin-bottom: 0.85rem;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06),
+                    0 8px 20px rgba(2,6,23,0.25);
     }}
     .mt-kpi:hover {{
         transform: translateY(-2px);
