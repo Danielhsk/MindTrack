@@ -68,4 +68,8 @@ COLORS = {
     "accent": "#B45309",
     "ok": "#15803D",
     "border": "#E2E8F0",
+    "sky": "#0EA5E9",
+    "violet": "#6366F1",
+    "amber": "#F59E0B",
+    "mint": "#14B8A6",
 }
