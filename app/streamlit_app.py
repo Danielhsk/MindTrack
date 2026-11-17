@@ -16,9 +16,12 @@ if str(ROOT) not in sys.path:
 
 from src.conclusion import build_conclusion
 from src.config import (
+    ASSETS_COLAB_DIR,
+    COLAB_EDA_GALLERY,
     COLORS,
     FIGURES_DIR,
     FORM_CATEGORICAL,
+    ML_EXPORT_GALLERY,
     MODELS_DIR,
     REPORTS_DIR,
     TARGET,
@@ -50,6 +53,7 @@ from src.ui_components import (
     render_sidebar_brand,
     render_sidebar_status,
     render_verdict_block,
+    render_static_figure_gallery,
     section_heading,
     timeline_block,
 )
@@ -388,6 +392,17 @@ def lab_huella() -> None:
     st.plotly_chart(fig, use_container_width=True)
     st.plotly_chart(fig_correlation_target(df), use_container_width=True)
 
+    content_divider()
+    render_static_figure_gallery(
+        COLAB_EDA_GALLERY,
+        ASSETS_COLAB_DIR,
+        heading="Figuras del EDA (Colab)",
+        lead=(
+            "Mismas gráficas del notebook de análisis exploratorio; útiles como "
+            "evidencia del informe y para comparar con los gráficos interactivos de arriba."
+        ),
+    )
+
 
 def lab_trazabilidad() -> None:
     section_heading(
@@ -426,22 +441,16 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
         st.subheader("Test · XGBoost (producción)")
         st.dataframe(pd.read_csv(test_path), use_container_width=True, hide_index=True)
 
-    with st.expander("Figuras estáticas del notebook (zoom / referencia)"):
-        figures = [
-            ("metrics_validation.png", "Métricas Validation"),
-            ("pr_curves_validation.png", "Curvas Precision-Recall"),
-            ("confusion_validation.png", "Matrices de confusión"),
-            ("heatmap_validation.png", "Heatmap métricas"),
-        ]
-        cols = st.columns(2)
-        for i, (name, title) in enumerate(figures):
-            path = FIGURES_DIR / name
-            with cols[i % 2]:
-                st.markdown(f"**{title}**")
-                if path.exists():
-                    st.image(str(path), use_container_width=True)
-                else:
-                    st.warning(f"Falta {name}")
+    content_divider()
+    render_static_figure_gallery(
+        ML_EXPORT_GALLERY,
+        FIGURES_DIR,
+        heading="Figuras del experimento (Colab / export)",
+        lead=(
+            "PNG generadas al entrenar y comparar modelos (mismo contenido que el "
+            "notebook de comparación en Colab y `scripts/train_and_export.py`)."
+        ),
+    )
 
 
 def render_lab() -> None:

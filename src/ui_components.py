@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
 from typing import Iterable
 
 import streamlit as st
@@ -248,6 +249,37 @@ def insight_note(text: str, tip: str) -> None:
     )
 
 
+def render_static_figure_gallery(
+    entries: list[tuple[str, str, str]],
+    base_dir: Path,
+    *,
+    heading: str = "Figuras del Colab (referencia estática)",
+    lead: str = (
+        "Capturas exportadas desde los notebooks de Google Colab; "
+        "complementan las visualizaciones interactivas de esta sección."
+    ),
+    columns: int = 2,
+) -> None:
+    """Grid of static images (JPEG/PNG) with title and short caption."""
+    if not entries:
+        return
+    st.markdown(f"#### {_esc(heading)}")
+    st.caption(lead)
+    cols = st.columns(columns)
+    for i, (filename, title, description) in enumerate(entries):
+        path = base_dir / filename
+        with cols[i % columns]:
+            st.markdown(
+                f"<p class='mt-fig-title'>{_esc(title)}</p>",
+                unsafe_allow_html=True,
+            )
+            if path.is_file():
+                st.image(str(path), use_container_width=True)
+                st.caption(description)
+            else:
+                st.warning(f"No se encontró `{filename}` en el repositorio.")
+
+
 def section_heading(title: str, tip: str) -> None:
     st.markdown(
         f"""
@@ -268,8 +300,8 @@ LAB_NAV: list[tuple[str, str]] = [
     ),
     (
         "Huella de datos",
-        "Gráficos del dataset: cómo se distribuyen edad, hábitos digitales, sueño "
-        "y bienestar, y su relación con el riesgo académico.",
+        "Gráficos interactivos del dataset más las figuras estáticas exportadas "
+        "desde el EDA en Colab (balance, histogramas, correlación, etc.).",
     ),
     (
         "Trazabilidad ML",
