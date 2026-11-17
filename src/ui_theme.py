@@ -746,6 +746,18 @@ def inject_css() -> str:
         color: {COLORS["navy"]};
         margin: 0.25rem 0 0.35rem;
     }}
+    .mt-fig-title {{
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: {COLORS["navy"]};
+        margin: 0.35rem 0 0.25rem;
+    }}
+    [data-testid="stImage"] {{
+        border-radius: 12px;
+        border: 1px solid {COLORS["border"]};
+        overflow: hidden;
+        box-shadow: 0 6px 16px rgba(15,23,42,0.06);
+    }}
   .main div[data-testid="stVerticalBlock"] > div:has(.mt-chip-label) + div button {{
         border-radius: 12px !important;
         border: 1px solid {COLORS["border"]} !important;
