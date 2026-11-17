@@ -11,6 +11,8 @@ showSidebarNavigation = false
 [server]
 headless = true
 enableCORS = false
+# OneDrive: detecta cambios en src/ sin reiniciar el proceso
+fileWatcherType = "poll"
 
 [browser]
 gatherUsageStats = false

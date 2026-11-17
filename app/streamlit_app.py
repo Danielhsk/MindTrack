@@ -25,17 +25,22 @@ from src.config import (
 )
 from src.form_ui import categorical_burnout, categorical_education, categorical_gender
 from src.explainability import top_contributions
-from src.lab_viz import (
-    fig_burnout_risk,
-    fig_class_balance,
-    fig_correlation_target,
-    fig_fn_fp,
-    fig_metrics_radar,
-    fig_metric_vs_risk_jitter,
-    fig_model_metrics,
-    load_dataset,
-    SCATTER_METRIC_OPTIONS,
-)
+import importlib
+
+import src.lab_viz as lab_viz
+
+importlib.reload(lab_viz)
+
+fig_burnout_risk = lab_viz.fig_burnout_risk
+fig_class_balance = lab_viz.fig_class_balance
+fig_confusion_matrix_row = lab_viz.fig_confusion_matrix_row
+fig_correlation_target = lab_viz.fig_correlation_target
+fig_fn_fp = lab_viz.fig_fn_fp
+fig_metrics_radar = lab_viz.fig_metrics_radar
+fig_metric_vs_risk_jitter = lab_viz.fig_metric_vs_risk_jitter
+fig_model_metrics = lab_viz.fig_model_metrics
+load_dataset = lab_viz.load_dataset
+SCATTER_METRIC_OPTIONS = lab_viz.SCATTER_METRIC_OPTIONS
 from src.predict import load_metadata, panel_opinions, predict_student
 from src.recommendations import generate_recommendations
 from src.ui_components import (
@@ -408,6 +413,27 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
         "por qué XGBoost quedó como motor de la consulta en vivo.",
     )
     st.dataframe(comparison, use_container_width=True, hide_index=True)
+
+    cm_cols = {"Modelo", "TN", "FP", "FN", "TP"}
+    if cm_cols.issubset(comparison.columns):
+        section_heading(
+            "Matrices de confusión (validación)",
+            "Vista por modelo: cuántas predicciones acertaron y qué tipo de error cometió "
+            "con su umbral calibrado.",
+        )
+        st.caption(
+            "FN = estudiante en riesgo no detectado · FP = alerta innecesaria · "
+            "Útil junto al gráfico de barras de métricas."
+        )
+        cols = st.columns(3)
+        for col, (_, row) in zip(cols, comparison.iterrows()):
+            with col:
+                st.plotly_chart(
+                    fig_confusion_matrix_row(row),
+                    use_container_width=True,
+                    key=f"cm_{row['Modelo']}",
+                )
+        content_divider()
 
     metric_choice = st.selectbox(
         "Métrica interactiva",

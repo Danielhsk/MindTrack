@@ -134,6 +134,92 @@ def fig_correlation_target(df: pd.DataFrame, top_n: int = 10) -> go.Figure:
     return fig
 
 
+def fig_confusion_matrix_row(row: pd.Series) -> go.Figure:
+    """Matriz 2×2 desde TN, FP, FN, TP (partición Validation)."""
+    tn, fp, fn, tp = int(row["TN"]), int(row["FP"]), int(row["FN"]), int(row["TP"])
+    modelo = str(row.get("Modelo", "Modelo"))
+    x_labels = ["Sin riesgo", "En riesgo"]
+    y_labels = ["Real sin riesgo", "Real en riesgo"]
+    # Tono visual: aciertos (TN, TP) = 2; errores (FP, FN) = 0 (no escala por magnitud).
+    tone = [[2.0, 0.0], [0.0, 2.0]]
+    gray_cell = "#E2E8F0"
+    hover = [
+        [
+            f"TN (verdaderos negativos): {tn:,}",
+            f"FP (falsos positivos): {fp:,}",
+        ],
+        [
+            f"FN (falsos negativos): {fn:,}",
+            f"TP (verdaderos positivos): {tp:,}",
+        ],
+    ]
+    cells = [
+        (y_labels[0], x_labels[0], "TN", tn, True),
+        (y_labels[0], x_labels[1], "FP", fp, False),
+        (y_labels[1], x_labels[0], "FN", fn, False),
+        (y_labels[1], x_labels[1], "TP", tp, True),
+    ]
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=tone,
+            x=x_labels,
+            y=y_labels,
+            customdata=hover,
+            hoverongaps=False,
+            zmin=0,
+            zmax=2,
+            colorscale=[
+                [0.0, gray_cell],
+                [0.49, gray_cell],
+                [0.51, COLORS["navy"]],
+                [1.0, COLORS["navy"]],
+            ],
+            showscale=False,
+        )
+    )
+    fig.update_traces(
+        xgap=4,
+        ygap=4,
+        hovertemplate="%{customdata}<extra></extra>",
+    )
+    for y, x, code, value, is_hit in cells:
+        fig.add_annotation(
+            x=x,
+            y=y,
+            text=f"<b>{code}</b><br><span style='font-size:15px'>{value:,}</span>",
+            showarrow=False,
+            font=dict(
+                size=12,
+                color="#F8FAFC" if is_hit else COLORS["navy"],
+            ),
+        )
+    fig.update_layout(
+        title=dict(
+            text=modelo,
+            font=dict(size=13, color=COLORS["navy"]),
+            x=0.5,
+            xanchor="center",
+            y=0.97,
+            yanchor="top",
+        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=310,
+        margin=dict(t=52, b=48, l=108, r=16),
+        xaxis=dict(
+            side="bottom",
+            title=dict(text="Predicción del modelo", font=dict(size=11)),
+            tickfont=dict(size=10),
+        ),
+        yaxis=dict(
+            title=dict(text="Valor real", font=dict(size=11)),
+            tickfont=dict(size=10),
+            autorange="reversed",
+        ),
+    )
+    return fig
+
+
 def fig_model_metrics(comparison: pd.DataFrame, metric: str) -> go.Figure:
     df = comparison.set_index("Modelo") if "Modelo" in comparison.columns else comparison
     fig = px.bar(
