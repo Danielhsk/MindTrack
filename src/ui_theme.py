@@ -7,8 +7,17 @@ def inject_css() -> str:
     green_on = "#22C55E"
     track_off = "#E8ECF1"
     return f"""
-<!-- MindTrack UI · sidebar v2.3 wellness -->
+<!-- MindTrack UI · header bar v3 (sin sidebar) -->
 <style>
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarNav"] {{
+        display: none !important;
+    }}
+    [data-testid="stAppViewContainer"] > section.main .block-container {{
+        padding-top: 0.85rem;
+        max-width: 1240px;
+    }}
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
     html, body, [class*="css"] {{
         font-family: 'DM Sans', system-ui, sans-serif;
@@ -714,7 +723,9 @@ def inject_css() -> str:
         box-shadow: 0 7px 0 #93C5FD, 0 14px 24px rgba(37,99,235,0.16) !important;
     }}
     .mt-chip-bar + div [data-testid="stHorizontalBlock"] .stButton > button[kind="primary"],
-    div.element-container:has(.mt-chip-label) + div.element-container .stButton > button[kind="primary"] {{
+    div.element-container:has(.mt-chip-label) + div.element-container .stButton > button[kind="primary"],
+    .mt-chip-bar + div [data-testid="column"]:nth-child(2) .stButton > button,
+    div.element-container:has(.mt-chip-label) + div.element-container [data-testid="column"]:nth-child(2) .stButton > button {{
         border-color: #FCD34D !important;
         background: linear-gradient(180deg, #FEF3C7, #FDE68A) !important;
         color: #92400E !important;
@@ -800,6 +811,95 @@ def inject_css() -> str:
     }}
     [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-insight-nav-label) .stButton > button[kind="secondary"] {{
         background: #F8FAFC !important;
+        color: {COLORS["slate"]} !important;
+    }}
+    /* Top app bar (marca + PRD/LAB) */
+    .mt-appbar-marker {{
+        display: none !important;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) {{
+        background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+        border-color: {COLORS["border"]} !important;
+        border-radius: 18px !important;
+        margin: 0 0 1rem 0 !important;
+        padding: 0.65rem 1rem 0.7rem !important;
+        box-shadow: 0 8px 24px rgba(31,58,95,0.07);
+    }}
+    .mt-appbar-brand {{
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }}
+    .mt-appbar-mark {{
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+    }}
+    .mt-appbar-mark svg {{
+        width: 100%;
+        height: 100%;
+    }}
+    .mt-appbar-title {{
+        font-size: 1.22rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: {COLORS["navy"]};
+        line-height: 1.1;
+    }}
+    .mt-appbar-sub {{
+        font-size: 0.74rem;
+        color: {COLORS["slate"]};
+        margin-top: 0.12rem;
+        line-height: 1.35;
+    }}
+    .mt-env-switch-label {{
+        margin: 0 0 0.35rem !important;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: {COLORS["mist"]};
+    }}
+    .mt-appbar-meta {{
+        margin: 0;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        color: {COLORS["navy"]};
+        text-align: right;
+    }}
+    .mt-appbar-meta span {{
+        color: {COLORS["mist"]};
+        font-size: 0.72rem;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] {{
+        background: #E8EDF3 !important;
+        border-radius: 12px !important;
+        padding: 4px !important;
+        min-height: 42px;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: inset 0 1px 2px rgba(15,23,42,0.05) !important;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] button {{
+        border-radius: 9px !important;
+        font-weight: 700 !important;
+        font-size: 0.8rem !important;
+        letter-spacing: 0.06em !important;
+        background: transparent !important;
+        color: {COLORS["slate"]} !important;
+        border: none !important;
+        box-shadow: none !important;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] button[aria-selected="true"] {{
+        background: linear-gradient(180deg, #2E4A6E, {COLORS["navy"]}) !important;
+        color: #F8FAFC !important;
+        box-shadow: 0 4px 12px rgba(31,58,95,0.22) !important;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] button[aria-selected="true"] p,
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] button[aria-selected="true"] div {{
+        color: #F8FAFC !important;
+        -webkit-text-fill-color: #F8FAFC !important;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-appbar-marker) [data-baseweb="segmented-control"] button:not([aria-selected="true"]) {{
         color: {COLORS["slate"]} !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.mt-side-label) {{

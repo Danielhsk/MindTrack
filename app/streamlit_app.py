@@ -45,10 +45,8 @@ from src.ui_components import (
     page_footer,
     panel_heading,
     profile_chips_header,
-    render_env_switch,
+    render_app_header,
     render_insight_nav,
-    render_sidebar_brand,
-    render_sidebar_status,
     render_verdict_block,
     render_static_figure_gallery,
     section_heading,
@@ -60,7 +58,7 @@ st.set_page_config(
     page_title="MindTrack",
     page_icon="🧠",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(inject_css(), unsafe_allow_html=True)
@@ -77,13 +75,6 @@ LAB_SECTIONS = [
 @st.cache_data(show_spinner=False)
 def cached_dataset() -> pd.DataFrame:
     return load_dataset()
-
-
-def sidebar_brand() -> None:
-    """Sidebar: marca arriba, luego ambiente y motor (espaciado v2.3)."""
-    render_sidebar_brand()
-    render_env_switch()
-    render_sidebar_status()
 
 
 def preset_values() -> dict:
@@ -108,7 +99,7 @@ def production_form() -> dict | None:
             EXAMPLE_PROFILES["alert"]["label"],
             use_container_width=True,
             key="btn_alert",
-            type="primary",
+            type="secondary",
         ):
             st.session_state.form_preset = "alert"
 
@@ -481,7 +472,7 @@ def render_lab() -> None:
 
 
 def main() -> None:
-    sidebar_brand()
+    render_app_header()
     env = st.session_state.get("mindtrack_env", "PRD")
     if env not in ("PRD", "LAB"):
         env = "PRD"

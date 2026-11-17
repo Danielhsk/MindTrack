@@ -42,6 +42,80 @@ def hero(title: str, subtitle: str, badge: str | None = None) -> None:
     )
 
 
+def _resolve_env(choice: str | None) -> str:
+    """PRD/LAB from widget; segmented_control can briefly return None on switch."""
+    current = st.session_state.get("mindtrack_env", "PRD")
+    if choice in ("PRD", "LAB"):
+        return choice
+    return current if current in ("PRD", "LAB") else "PRD"
+
+
+def _render_env_widget() -> str:
+    """PRD/LAB control (main area)."""
+    default = _resolve_env(None)
+    if hasattr(st, "segmented_control"):
+        choice = st.segmented_control(
+            "env_switch",
+            options=["PRD", "LAB"],
+            default=default,
+            label_visibility="collapsed",
+        )
+    else:
+        choice = st.radio(
+            "env_switch",
+            options=["PRD", "LAB"],
+            index=0 if default == "PRD" else 1,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+    env = _resolve_env(choice)
+    st.session_state.mindtrack_env = env
+    return env
+
+
+def render_app_header() -> str:
+    """Barra superior: marca + switch PRD/LAB (sin sidebar)."""
+    with st.container(border=True):
+        st.markdown('<span class="mt-appbar-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
+        c_brand, c_switch, c_meta = st.columns([1.45, 0.48, 1.05], gap="small")
+        with c_brand:
+            st.markdown(
+                """
+                <div class="mt-appbar-brand">
+                    <div class="mt-appbar-mark" aria-hidden="true">
+                        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                            <circle cx="16" cy="16" r="14" stroke="#94A3B8" stroke-width="1.5"/>
+                            <path d="M10 19c1.2-4 3.5-6 6-6s4.8 2 6 6" stroke="#64748B" stroke-width="1.6" stroke-linecap="round"/>
+                            <circle cx="16" cy="20" r="2" fill="#6366F1"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="mt-appbar-title">MindTrack</div>
+                        <div class="mt-appbar-sub">Riesgo académico · hábitos y bienestar</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c_switch:
+            st.markdown('<p class="mt-env-switch-label">Vista</p>', unsafe_allow_html=True)
+            env = _render_env_widget()
+        with c_meta:
+            if env == "PRD":
+                st.markdown(
+                    "<p class='mt-appbar-meta'><strong>Producción</strong> · "
+                    "XGBoost en vivo<br/><span>Preventivo · sin nota en el modelo</span></p>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    "<p class='mt-appbar-meta'><strong>Insight</strong> · laboratorio<br/>"
+                    "<span>Evidencia Colab · solo lectura</span></p>",
+                    unsafe_allow_html=True,
+                )
+    return env
+
+
 def render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
@@ -344,46 +418,9 @@ def render_insight_nav(sections: list[str] | None = None) -> str:
     return st.session_state.lab_section
 
 
-def _resolve_env(choice: str | None) -> str:
-    """PRD/LAB from widget; segmented_control can briefly return None on switch."""
-    current = st.session_state.get("mindtrack_env", "PRD")
-    if choice in ("PRD", "LAB"):
-        return choice
-    return current if current in ("PRD", "LAB") else "PRD"
-
-
 def render_env_switch() -> str:
-    """PRD / LAB pill-style switch (Streamlit segmented control + CSS)."""
-    default = _resolve_env(None)
-    with st.sidebar.container(border=True):
-        st.markdown('<p class="mt-side-label">Ambiente de trabajo</p>', unsafe_allow_html=True)
-        if hasattr(st.sidebar, "segmented_control"):
-            choice = st.sidebar.segmented_control(
-                "env_switch",
-                options=["PRD", "LAB"],
-                default=default,
-                label_visibility="collapsed",
-            )
-        else:
-            choice = st.sidebar.radio(
-                "env_switch",
-                options=["PRD", "LAB"],
-                index=0 if default == "PRD" else 1,
-                horizontal=True,
-                label_visibility="collapsed",
-            )
-        env = _resolve_env(choice)
-        st.session_state.mindtrack_env = env
-        hint = (
-            "Consulta en vivo con XGBoost"
-            if env == "PRD"
-            else "Insight · evidencia del experimento"
-        )
-        st.markdown(
-            f"<div class='mt-env-hint mt-env-hint--{env.lower()}'>{hint}</div>",
-            unsafe_allow_html=True,
-        )
-    return env
+    """Legacy sidebar switch (reservado; usar render_app_header)."""
+    return render_app_header()
 
 
 def timeline_block() -> None:
