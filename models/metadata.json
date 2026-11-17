@@ -1,0 +1,91 @@
+{
+  "generated_at_utc": "2026-11-17T01:23:26.731513+00:00",
+  "random_state": 42,
+  "recall_target": 0.85,
+  "feature_names": [
+    "Age",
+    "Daily_Social_Media_Hours",
+    "Daily_AI_Tool_Usage_Hours",
+    "Sleep_Hours",
+    "Physical_Activity_Hours",
+    "Mental_Health_Score",
+    "Physical_Health_Score",
+    "Social_Isolation_Score",
+    "Burnout_Level",
+    "Gender_Male",
+    "Gender_Non-binary",
+    "Education_Level_High School",
+    "Education_Level_University"
+  ],
+  "production_model_key": "xgboost",
+  "production_model_label": "XGBoost",
+  "thresholds": {
+    "Logistic Regression": 0.9041006405363122,
+    "Random Forest": 0.4180887884383975,
+    "XGBoost": 0.7275980114936829
+  },
+  "validation_metrics": [
+    {
+      "Modelo": "Logistic Regression",
+      "Umbral": 0.9041006405363122,
+      "Recall (C1)": 0.8518518518518519,
+      "Precision (C1)": 0.7876712328767124,
+      "F1-Score (C1)": 0.8185053380782918,
+      "PR-AUC": 0.9165396214692654,
+      "ROC-AUC": 0.9929042990981526,
+      "FN": 20,
+      "FP": 31,
+      "TP": 115,
+      "TN": 2084,
+      "Cumple Recall": true
+    },
+    {
+      "Modelo": "Random Forest",
+      "Umbral": 0.4180887884383975,
+      "Recall (C1)": 0.8740740740740741,
+      "Precision (C1)": 0.7151515151515152,
+      "F1-Score (C1)": 0.7866666666666666,
+      "PR-AUC": 0.8986358615409362,
+      "ROC-AUC": 0.9916784869976359,
+      "FN": 17,
+      "FP": 47,
+      "TP": 118,
+      "TN": 2068,
+      "Cumple Recall": true
+    },
+    {
+      "Modelo": "XGBoost",
+      "Umbral": 0.7275980114936829,
+      "Recall (C1)": 0.8592592592592593,
+      "Precision (C1)": 0.7295597484276729,
+      "F1-Score (C1)": 0.7891156462585034,
+      "PR-AUC": 0.9144503732821021,
+      "ROC-AUC": 0.9925750809911567,
+      "FN": 19,
+      "FP": 43,
+      "TP": 116,
+      "TN": 2072,
+      "Cumple Recall": true
+    }
+  ],
+  "test_metrics_production": {
+    "Modelo": "XGBoost",
+    "Umbral": 0.7275980114936829,
+    "Recall (C1)": 0.8814814814814815,
+    "Precision (C1)": 0.7727272727272727,
+    "F1-Score (C1)": 0.8235294117647058,
+    "PR-AUC": 0.933364045119457,
+    "ROC-AUC": 0.9943962875404956,
+    "FN": 16,
+    "FP": 35,
+    "TP": 119,
+    "TN": 2080,
+    "Cumple Recall": true
+  },
+  "split": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "notes": "Academic_Performance_Score excluded (data leakage / preventive scenario). Production UI uses XGBoost. Laboratory visualizes these exported artifacts only."
+}

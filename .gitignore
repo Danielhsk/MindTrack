@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.idea/
+.vscode/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+*.log
+.streamlit/secrets.toml
+artefactos/
+*_executed.ipynb
+.pytest_cache/
+htmlcov/
+.coverage
+*.tmp
+.cursor/
+# Large presentation videos (keep local / Drive; not needed for Streamlit)
+assets/*.mp4
+Imagenes/*.mp4
+
