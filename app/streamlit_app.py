@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -32,8 +31,10 @@ from src.lab_viz import (
     fig_correlation_target,
     fig_fn_fp,
     fig_metrics_radar,
+    fig_metric_vs_risk_jitter,
     fig_model_metrics,
     load_dataset,
+    SCATTER_METRIC_OPTIONS,
 )
 from src.predict import load_metadata, panel_opinions, predict_student
 from src.recommendations import generate_recommendations
@@ -160,14 +161,6 @@ def load_lab_artifacts() -> tuple[pd.DataFrame, dict] | None:
     return comparison, meta
 
 
-def _format_model_date(iso_utc: str) -> str:
-    try:
-        dt = datetime.fromisoformat(iso_utc.replace("Z", "+00:00"))
-        return dt.strftime("%d/%m/%Y · %H:%M UTC")
-    except (TypeError, ValueError):
-        return iso_utc[:19] if iso_utc else "—"
-
-
 def render_prd() -> None:
     hero(
         "Consulta MindTrack",
@@ -181,14 +174,6 @@ def render_prd() -> None:
     if not meta_path.exists():
         st.error("Ejecuta `python scripts/train_and_export.py` para generar artefactos.")
         return
-
-    meta = load_metadata()
-    tm = meta["thresholds"][meta["production_model_label"]]
-    fecha = _format_model_date(meta.get("generated_at_utc", ""))
-    st.caption(
-        f"Modelo entrenado y exportado el {fecha}. "
-        f"Umbral de alerta (validación): probabilidad ≥ {tm:.1%}."
-    )
 
     form = production_form()
     if form is None:
@@ -214,7 +199,7 @@ def render_prd() -> None:
             result, recs, top_factors=contrib["feature"].tolist()
         )
         run_status.update(label="Consulta completada", state="complete", expanded=False)
-    st.success("Listo: puedes revisar la señal y el detalle a continuación.")
+    st.success("Listo: puedes revisar el estado del perfil y el detalle a continuación.")
 
     content_divider()
     render_verdict_block(
@@ -271,7 +256,7 @@ def render_prd() -> None:
     left, right = st.columns((1.1, 1))
     with left:
         section_heading(
-            "Señales que empujan la predicción",
+            "Factores que empujan el estado",
             "Muestra qué variables del perfil empujan el resultado hacia alerta o calma; "
             "barras más largas = mayor influencia en esta consulta.",
         )
@@ -375,31 +360,18 @@ def lab_huella() -> None:
         st.plotly_chart(fig_class_balance(df), use_container_width=True)
     with c2:
         st.plotly_chart(fig_burnout_risk(df), use_container_width=True)
+    metric_keys = [k for k, _ in SCATTER_METRIC_OPTIONS]
+    metric_labels = {k: v for k, v in SCATTER_METRIC_OPTIONS}
     metric = st.selectbox(
-        "Variable numérica (scatter vs riesgo)",
-        [
-            "Sleep_Hours",
-            "Daily_Social_Media_Hours",
-            "Mental_Health_Score",
-            "Social_Isolation_Score",
-        ],
+        "Variable a comparar con el riesgo",
+        metric_keys,
+        format_func=lambda k: metric_labels[k],
     )
-    sample = df[[metric, TARGET]].sample(min(2500, len(df)), random_state=42)
-    fig = px.scatter(
-        sample,
-        x=metric,
-        y=TARGET,
-        opacity=0.25,
-        color=TARGET,
-        color_discrete_map={0: COLORS["ok"], 1: COLORS["accent"]},
-        labels={TARGET: "Academic_Failure_Risk"},
+    st.caption(
+        "Cada punto es un estudiante del dataset. La separación vertical es solo visual "
+        "(jitter) para que no se amontonen en las líneas 0 y 1."
     )
-    fig.update_layout(
-        height=360,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_metric_vs_risk_jitter(df, metric), use_container_width=True)
     st.plotly_chart(fig_correlation_target(df), use_container_width=True)
 
     content_divider()
@@ -470,8 +442,9 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
 def render_lab() -> None:
     hero(
         "MindTrack Insight",
-        "Laboratorio de evidencia: datos, trazabilidad del pipeline y comparativa de modelos "
-        "(artefactos del experimento, solo lectura).",
+        "Recorre los datos del estudio, cómo se construyó el modelo y cómo se compararon "
+        "los algoritmos. Es una vista de consulta: no cambia ni vuelve a entrenar "
+        "el motor que usa la pestaña de producción.",
         badge="LAB",
     )
     data = load_lab_artifacts()

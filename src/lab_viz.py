@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -10,9 +11,60 @@ from src.config import BURNOUT_ORDER, COLORS, DATA_PATH, TARGET
 
 MT_SEQ = [COLORS["navy"], COLORS["slate"], COLORS["accent"]]
 
+SCATTER_METRIC_OPTIONS: list[tuple[str, str]] = [
+    ("Sleep_Hours", "Horas de sueño"),
+    ("Daily_Social_Media_Hours", "Horas en redes sociales"),
+    ("Mental_Health_Score", "Bienestar mental"),
+    ("Social_Isolation_Score", "Aislamiento social"),
+]
+
+METRIC_LABELS_ES = dict(SCATTER_METRIC_OPTIONS)
+
 
 def load_dataset() -> pd.DataFrame:
     return pd.read_csv(DATA_PATH)
+
+
+def fig_metric_vs_risk_jitter(
+    df: pd.DataFrame,
+    metric_col: str,
+    *,
+    sample_n: int = 2500,
+    seed: int = 42,
+) -> go.Figure:
+    """Scatter con jitter vertical para riesgo binario (solo visualización)."""
+    sample = df[[metric_col, TARGET]].sample(min(sample_n, len(df)), random_state=seed).copy()
+    rng = np.random.default_rng(seed)
+    sample["_y_plot"] = sample[TARGET].astype(float) + rng.uniform(-0.14, 0.14, len(sample))
+    x_label = METRIC_LABELS_ES.get(metric_col, metric_col)
+    fig = px.scatter(
+        sample,
+        x=metric_col,
+        y="_y_plot",
+        color=TARGET,
+        opacity=0.4,
+        color_discrete_map={0: COLORS["ok"], 1: COLORS["accent"]},
+        labels={
+            metric_col: x_label,
+            "_y_plot": "Riesgo académico",
+            TARGET: "Riesgo",
+        },
+        title=f"{x_label} frente a riesgo académico (muestra aleatoria)",
+    )
+    fig.update_yaxes(
+        tickvals=[0, 1],
+        ticktext=["Sin riesgo (0)", "En riesgo (1)"],
+        range=[-0.28, 1.28],
+        title="Riesgo académico",
+    )
+    fig.update_layout(
+        height=400,
+        margin=dict(t=50, b=40, l=10, r=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        legend_title_text="Resultado",
+    )
+    return fig
 
 
 def fig_class_balance(df: pd.DataFrame) -> go.Figure:
