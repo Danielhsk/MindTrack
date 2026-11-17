@@ -231,10 +231,10 @@ def render_verdict_block(
     threshold: float,
     risk_band: str = "",
 ) -> None:
-    """Tarjeta señal MindTrack (sin estilo sello / veredicto tipo spam)."""
+    """Tarjeta de estado MindTrack (sin estilo sello / veredicto tipo spam)."""
     mode = "alert" if at_risk else "stable"
-    headline = "Señal de alerta académica" if at_risk else "Señal estable"
-    clase = "Clase 1 · riesgo detectado" if at_risk else "Clase 0 · por debajo del umbral"
+    headline = "Estado de alerta académica" if at_risk else "Estado estable"
+    clase = "Riesgo detectado (clase 1)" if at_risk else "Por debajo del umbral (clase 0)"
     band = risk_band or "—"
     tip = (
         "La probabilidad supera el umbral Validation del pipeline XGBoost."
@@ -256,7 +256,7 @@ def render_verdict_block(
                 </motion-div>
             </div>
             <motion-div class="mt-signal-body">
-                <span class="mt-signal-kicker">Lectura MindTrack</span>
+                <span class="mt-signal-kicker">Estado del perfil</span>
                 <h2>{_esc(headline)}</h2>
                 <p>{_esc(clase)} · Banda <strong>{_esc(band)}</strong></p>
                 <motion-div class="mt-signal-meta">
