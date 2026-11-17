@@ -1,0 +1,8 @@
+{
+  "name": "mindtrack-streamlit-keep-alive",
+  "private": true,
+  "description": "Scheduled wake-up for mindtrack-si.streamlit.app",
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}
