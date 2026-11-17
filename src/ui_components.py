@@ -44,28 +44,28 @@ def hero(title: str, subtitle: str, badge: str | None = None) -> None:
 def render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
-        <motion-div class="mt-brand">
+        <motion-div class="mt-brand mt-side-panel mt-side-panel--hero">
             <motion-div class="mt-brand-glow" aria-hidden="true"></div>
             <motion-div class="mt-brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="mtRing" x1="8" y1="8" x2="40" y2="40">
-                            <stop stop-color="#38BDF8"/>
-                            <stop offset="1" stop-color="#818CF8"/>
+                            <stop stop-color="#5EEAD4"/>
+                            <stop offset="1" stop-color="#A7F3D0"/>
                         </linearGradient>
                     </defs>
                     <circle cx="24" cy="24" r="22" stroke="url(#mtRing)" stroke-width="2"/>
-                    <path d="M14 28c2-8 6-12 10-12s8 4 10 12" stroke="#7DD3FC" stroke-width="2.2" stroke-linecap="round"/>
-                    <path d="M18 22c1.5-3 4-5 6-5s4.5 2 6 5" stroke="#E0F2FE" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="24" cy="30" r="3.2" fill="#22D3EE"/>
+                    <path d="M14 28c2-8 6-12 10-12s8 4 10 12" stroke="#99F6E4" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M18 22c1.5-3 4-5 6-5s4.5 2 6 5" stroke="#D1FAE5" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="24" cy="30" r="3.2" fill="#6EE7B7"/>
                 </svg>
             </motion-div>
-            <motion-div>
+            <motion-div class="mt-brand-copy">
                 <motion-div class="mt-brand-title">MindTrack</motion-div>
                 <motion-div class="mt-brand-sub">Riesgo académico · hábitos y bienestar</motion-div>
                 <motion-div class="mt-brand-tags">
-                    <span>Sistemas Inteligentes</span>
-                    <span class="mt-ui-ver">Glass · v2</span>
+                    <span class="mt-tag-course">Sistemas Inteligentes</span>
+                    <span class="mt-ui-ver">Calm · v2.3</span>
                 </motion-div>
             </motion-div>
         </motion-div>
@@ -75,25 +75,27 @@ def render_sidebar_brand() -> None:
 
 
 def render_sidebar_status() -> None:
-    st.sidebar.markdown(
-        """
-        <motion-div class="mt-side-glass mt-side-status">
-            <motion-div class="mt-side-status-head">
-                <span class="mt-side-pill">Motor PRD</span>
-                <strong>XGBoost</strong>
+    with st.sidebar.container(border=True):
+        st.markdown('<p class="mt-side-label">Motor en producción</p>', unsafe_allow_html=True)
+        st.markdown(
+            """
+            <motion-div class="mt-side-status">
+                <motion-div class="mt-side-status-head">
+                    <span class="mt-side-pill">PRD</span>
+                    <strong>XGBoost</strong>
+                </motion-div>
+                <p class="mt-side-note">
+                    Consulta preventiva sin usar la nota académica dentro del modelo.
+                </p>
+                <motion-div class="mt-side-chips">
+                    <span>Detección ≥ 85%</span>
+                    <span>13 variables</span>
+                    <span>Sin filtración</span>
+                </motion-div>
             </motion-div>
-            <p class="mt-side-note">
-                Academic_Performance_Score fuera del ML · escenario preventivo.
-            </p>
-            <motion-div class="mt-side-chips">
-                <span>Recall ≥ 0.85</span>
-                <span>13 features</span>
-                <span>Anti-leakage</span>
-            </motion-div>
-        </motion-div>
-        """.replace("motion-div", "div"),
-        unsafe_allow_html=True,
-    )
+            """.replace("motion-div", "div"),
+            unsafe_allow_html=True,
+        )
 
 
 def panel_heading(title: str, subtitle: str = "") -> None:

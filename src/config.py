@@ -72,4 +72,11 @@ COLORS = {
     "violet": "#6366F1",
     "amber": "#F59E0B",
     "mint": "#14B8A6",
+    # Sidebar wellness palette (v2.3)
+    "side_deep": "#1A2E2D",
+    "side_mid": "#243B3A",
+    "side_mist": "#94B8B4",
+    "calm_teal": "#5EEAD4",
+    "calm_sage": "#A7F3D0",
+    "calm_sea": "#99F6E4",
 }
