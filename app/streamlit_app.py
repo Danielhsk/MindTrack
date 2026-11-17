@@ -1,4 +1,4 @@
-"""MindTrack Streamlit application — Production (XGBoost) + Laboratory (read-only)."""
+"""MindTrack Streamlit — PRD (consulta XGBoost) + LAB (Insight, solo lectura)."""
 
 from __future__ import annotations
 
@@ -17,78 +17,128 @@ if str(ROOT) not in sys.path:
 from src.conclusion import build_conclusion
 from src.config import (
     COLORS,
-    FORM_CATEGORICAL,
-    FORM_NUMERIC,
     FIGURES_DIR,
+    FORM_CATEGORICAL,
     MODELS_DIR,
     REPORTS_DIR,
+    TARGET,
 )
 from src.explainability import top_contributions
+from src.lab_viz import (
+    fig_burnout_risk,
+    fig_class_balance,
+    fig_correlation_target,
+    fig_fn_fp,
+    fig_metrics_radar,
+    fig_model_metrics,
+    load_dataset,
+)
 from src.predict import load_metadata, predict_student
 from src.recommendations import generate_recommendations
+from src.ui_components import (
+    EXAMPLE_PROFILES,
+    hero,
+    init_session_defaults,
+    render_env_switch,
+    threshold_gauge,
+    timeline_block,
+    verdict_stamp,
+)
 from src.ui_theme import inject_css
 
 st.set_page_config(
-    page_title="MindTrack · Academic Risk",
-    page_icon="📘",
+    page_title="MindTrack",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 st.markdown(inject_css(), unsafe_allow_html=True)
+init_session_defaults()
+
+LAB_SECTIONS = [
+    "Panorama",
+    "Huella de datos",
+    "Trazabilidad ML",
+    "Arena de modelos",
+]
 
 
-def sidebar() -> str:
+@st.cache_data(show_spinner=False)
+def cached_dataset() -> pd.DataFrame:
+    return load_dataset()
+
+
+def sidebar_brand() -> None:
     st.sidebar.markdown("## MindTrack")
-    st.sidebar.caption("Sistema inteligente de riesgo académico")
-    mode = st.sidebar.radio(
-        "Modulo",
-        options=["Producción", "Laboratorio"],
-        index=0,
-        help="Producción: inferencia XGBoost. Laboratorio: resultados del Entregable 3 (solo lectura).",
-    )
+    st.sidebar.caption("Riesgo académico · hábitos digitales y bienestar")
+    env = render_env_switch()
     st.sidebar.markdown("---")
+    if env == "LAB":
+        st.sidebar.markdown("**Navegación Insight**")
+        st.session_state.lab_section = st.sidebar.radio(
+            "Sección",
+            LAB_SECTIONS,
+            index=LAB_SECTIONS.index(st.session_state.lab_section),
+            label_visibility="collapsed",
+        )
     st.sidebar.markdown(
-        f"<span class='mt-badge'>Modelo oficial: XGBoost</span>",
+        "<span class='mt-badge'>Motor PRD: XGBoost</span>",
         unsafe_allow_html=True,
     )
     st.sidebar.caption(
-        "Academic_Performance_Score excluido del ML (escenario preventivo / anti-leakage)."
+        "Academic_Performance_Score fuera del ML (escenario preventivo)."
     )
-    return mode
 
 
-def render_hero(title: str, subtitle: str) -> None:
-    st.markdown(
-        f"""
-        <div class="mt-hero">
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+def preset_values() -> dict:
+    return EXAMPLE_PROFILES[st.session_state.form_preset]["values"]
 
 
 def production_form() -> dict | None:
+    pv = preset_values()
+    st.markdown("**Perfiles de ejemplo**")
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button(
+            EXAMPLE_PROFILES["neutral"]["label"],
+            use_container_width=True,
+            key="btn_neutral",
+        ):
+            st.session_state.form_preset = "neutral"
+    with c2:
+        if st.button(
+            EXAMPLE_PROFILES["alert"]["label"],
+            use_container_width=True,
+            key="btn_alert",
+        ):
+            st.session_state.form_preset = "alert"
+
     with st.form("student_form", clear_on_submit=False):
         c1, c2, c3 = st.columns(3)
         with c1:
-            age = st.number_input("Age", min_value=14, max_value=40, value=20, step=1)
-            gender = st.selectbox("Gender", FORM_CATEGORICAL["Gender"])
-            education = st.selectbox("Education_Level", FORM_CATEGORICAL["Education_Level"])
+            age = st.number_input("Age", 14, 40, pv["age"], 1)
+            gender = st.selectbox("Gender", FORM_CATEGORICAL["Gender"], index=FORM_CATEGORICAL["Gender"].index(pv["gender"]))
+            education = st.selectbox(
+                "Education_Level",
+                FORM_CATEGORICAL["Education_Level"],
+                index=FORM_CATEGORICAL["Education_Level"].index(pv["education"]),
+            )
         with c2:
-            social = st.slider("Daily_Social_Media_Hours", 0.0, 14.0, 4.5, 0.1)
-            ai_hours = st.slider("Daily_AI_Tool_Usage_Hours", 0.0, 10.0, 2.5, 0.1)
-            sleep = st.slider("Sleep_Hours", 2.0, 12.0, 6.5, 0.1)
-            activity = st.slider("Physical_Activity_Hours", 0.0, 6.0, 1.2, 0.1)
+            social = st.slider("Daily_Social_Media_Hours", 0.0, 14.0, float(pv["social"]), 0.1)
+            ai_hours = st.slider("Daily_AI_Tool_Usage_Hours", 0.0, 10.0, float(pv["ai_hours"]), 0.1)
+            sleep = st.slider("Sleep_Hours", 2.0, 12.0, float(pv["sleep"]), 0.1)
+            activity = st.slider("Physical_Activity_Hours", 0.0, 6.0, float(pv["activity"]), 0.1)
         with c3:
-            mental = st.slider("Mental_Health_Score", 20.0, 100.0, 72.0, 0.5)
-            physical = st.slider("Physical_Health_Score", 20.0, 100.0, 80.0, 0.5)
-            isolation = st.slider("Social_Isolation_Score", 1.0, 9.0, 4.2, 0.1)
-            burnout = st.selectbox("Burnout_Level", FORM_CATEGORICAL["Burnout_Level"])
-
-        submitted = st.form_submit_button("Analizar estudiante", use_container_width=True)
+            mental = st.slider("Mental_Health_Score", 20.0, 100.0, float(pv["mental"]), 0.5)
+            physical = st.slider("Physical_Health_Score", 20.0, 100.0, float(pv["physical"]), 0.5)
+            isolation = st.slider("Social_Isolation_Score", 1.0, 9.0, float(pv["isolation"]), 0.1)
+            burnout = st.selectbox(
+                "Burnout_Level",
+                FORM_CATEGORICAL["Burnout_Level"],
+                index=FORM_CATEGORICAL["Burnout_Level"].index(pv["burnout"]),
+            )
+        submitted = st.form_submit_button("Ejecutar consulta MindTrack", use_container_width=True)
 
     if not submitted:
         return None
@@ -108,33 +158,41 @@ def production_form() -> dict | None:
     }
 
 
-def render_production() -> None:
-    render_hero(
-        "Producción · Predicción de riesgo",
-        "Ingresa el perfil del estudiante. MindTrack ejecuta el pipeline real de Machine Learning "
-        "(XGBoost) y muestra probabilidad, factores relevantes y recomendaciones.",
+def load_lab_artifacts() -> tuple[pd.DataFrame, dict] | None:
+    csv_path = REPORTS_DIR / "comparison_validation.csv"
+    meta_path = MODELS_DIR / "metadata.json"
+    if not csv_path.exists() or not meta_path.exists():
+        return None
+    comparison = pd.read_csv(csv_path)
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    return comparison, meta
+
+
+def render_prd() -> None:
+    hero(
+        "Consulta MindTrack",
+        "Inferencia en vivo con el pipeline de producción (preprocess + XGBoost). "
+        "Probabilidad de Academic_Failure_Risk, explicación y recomendaciones.",
+        badge="PRD",
     )
 
     meta_path = MODELS_DIR / "metadata.json"
     if not meta_path.exists():
-        st.error(
-            "No se encontró `models/metadata.json`. Ejecuta primero "
-            "`python scripts/train_and_export.py`."
-        )
+        st.error("Ejecuta `python scripts/train_and_export.py` para generar artefactos.")
         return
 
     meta = load_metadata()
+    tm = meta["thresholds"][meta["production_model_label"]]
     st.caption(
-        f"Artefactos: {meta['generated_at_utc']} · random_state={meta['random_state']} · "
-        f"umbral Validation={meta['thresholds'][meta['production_model_label']]:.4f}"
+        f"Artefactos · {meta['generated_at_utc']} · umbral Validation={tm:.4f}"
     )
 
     form = production_form()
     if form is None:
-        st.info("Completa el formulario y pulsa **Analizar estudiante** para ejecutar el modelo.")
+        st.info("Completa el perfil o carga un ejemplo, luego **Ejecutar consulta MindTrack**.")
         return
 
-    with st.spinner("Ejecutando preprocess + XGBoost..."):
+    with st.spinner("Pipeline en ejecución..."):
         result = predict_student(form)
         contrib = top_contributions(form, k=8)
         recs = generate_recommendations(form)
@@ -142,39 +200,35 @@ def render_production() -> None:
             result, recs, top_factors=contrib["feature"].tolist()
         )
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Probabilidad (clase 1)", f"{result['probability']:.1%}")
-    m2.metric("Umbral", f"{result['threshold']:.3f}")
-    m3.metric("Clase predicha", "At risk (1)" if result["predicted_class"] else "No risk (0)")
-    m4.metric("Banda", result["risk_band"])
+    verdict_stamp(result["predicted_class"] == 1, result["probability"])
+    threshold_gauge(result["probability"], result["threshold"])
 
-    badge = "mt-badge-risk" if result["predicted_class"] == 1 else "mt-badge-ok"
-    st.markdown(
-        f"<span class='mt-badge {badge}'>Modelo: {result['model_label']}</span>",
-        unsafe_allow_html=True,
-    )
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Banda", result["risk_band"])
+    m2.metric("Umbral", f"{result['threshold']:.3f}")
+    m3.metric("Clase", "1 · At risk" if result["predicted_class"] else "0 · No risk")
+    m4.metric("Modelo", result["model_label"])
 
     left, right = st.columns((1.1, 1))
     with left:
-        st.subheader("Factores relevantes")
+        st.subheader("Señales que empujan la predicción")
         fig = px.bar(
             contrib.sort_values("contribution"),
             x="contribution",
             y="feature",
             orientation="h",
             color="contribution",
-            color_continuous_scale=["#1F3A5F", "#94A3B8", "#B45309"],
-            labels={"contribution": "Contribution", "feature": "Feature"},
+            color_continuous_scale=[COLORS["navy"], COLORS["slate"], COLORS["accent"]],
         )
         fig.update_layout(
-            height=360,
+            height=380,
             margin=dict(l=10, r=10, t=20, b=10),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             coloraxis_showscale=False,
         )
         st.plotly_chart(fig, use_container_width=True)
-        st.caption(f"Método de explicación: {contrib['method'].iloc[0]}")
+        st.caption(f"Explicación: {contrib['method'].iloc[0]}")
 
     with right:
         st.subheader("Recomendaciones")
@@ -189,78 +243,145 @@ def render_production() -> None:
     st.subheader("Conclusión")
     st.markdown(conclusion)
     st.markdown(
-        "<div class='mt-disclaimer'>MindTrack es un prototipo académico. "
-        "Los resultados no reemplazan orientación profesional.</div>",
+        "<div class='mt-disclaimer'>Prototipo académico — no sustituye acompañamiento institucional.</div>",
         unsafe_allow_html=True,
     )
 
 
-def render_laboratory() -> None:
-    render_hero(
-        "Laboratorio · Comparación de modelos",
-        "Visualización de los mismos resultados del Entregable 3 (Colab). "
-        "Solo lectura: no se reentrena ni se procesa el dataset en esta pantalla.",
+def lab_panorama(meta: dict) -> None:
+    test = meta.get("test_metrics_production", {})
+    val = meta.get("validation_metrics", [])
+    xgb_val = next((m for m in val if m["Modelo"] == "XGBoost"), {})
+    risk_pct = cached_dataset()[TARGET].mean() * 100
+    st.markdown(
+        f"""
+        <div class="mt-kpi-grid">
+            <motion-div class="mt-kpi"><b>15,000</b><span>Registros</span></div>
+            <motion-div class="mt-kpi"><b>{risk_pct:.1f}%</b><span>Clase 1 en datos</span></div>
+            <motion-div class="mt-kpi"><b>{xgb_val.get('Recall (C1)', 0):.3f}</b><span>Recall XGB · Val</span></div>
+            <motion-div class="mt-kpi"><b>{test.get('Recall (C1)', 0):.3f}</b><span>Recall XGB · Test</span></motion-div>
+        </div>
+        """.replace("motion-div", "div"),
+        unsafe_allow_html=True,
     )
-
-    csv_path = REPORTS_DIR / "comparison_validation.csv"
-    test_path = REPORTS_DIR / "evaluation_test_xgboost.csv"
-    meta_path = MODELS_DIR / "metadata.json"
-
-    if not csv_path.exists() or not meta_path.exists():
-        st.error(
-            "Faltan artefactos del laboratorio. Ejecuta "
-            "`python scripts/train_and_export.py` y vuelve a cargar."
-        )
-        return
-
-    comparison = pd.read_csv(csv_path)
-    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-
     st.info(
-        f"Resultados exportados · {meta['generated_at_utc']} · "
-        f"split 70/15/15 · random_state={meta['random_state']} · "
-        f"Recall target={meta['recall_target']}"
+        f"Experimento exportado · split 70/15/15 · seed {meta['random_state']} · "
+        f"Recall objetivo {meta['recall_target']} · producción = **XGBoost**."
     )
 
-    st.subheader("Tabla comparativa · Validation")
+
+def lab_huella() -> None:
+    df = cached_dataset()
+    st.caption(f"Dataset: `data/academic_risk_dataset.csv` · {len(df):,} filas.")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.plotly_chart(fig_class_balance(df), use_container_width=True)
+    with c2:
+        st.plotly_chart(fig_burnout_risk(df), use_container_width=True)
+    metric = st.selectbox(
+        "Variable numérica (scatter vs riesgo)",
+        [
+            "Sleep_Hours",
+            "Daily_Social_Media_Hours",
+            "Mental_Health_Score",
+            "Social_Isolation_Score",
+        ],
+    )
+    sample = df[[metric, TARGET]].sample(min(2500, len(df)), random_state=42)
+    fig = px.scatter(
+        sample,
+        x=metric,
+        y=TARGET,
+        opacity=0.25,
+        color=TARGET,
+        color_discrete_map={0: COLORS["ok"], 1: COLORS["accent"]},
+        labels={TARGET: "Academic_Failure_Risk"},
+    )
+    fig.update_layout(
+        height=360,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_correlation_target(df), use_container_width=True)
+
+
+def lab_trazabilidad() -> None:
+    st.markdown(
+        "Cadena de decisiones del proyecto MindTrack (Entregables 2 y 3). "
+        "Sin reentrenamiento en esta interfaz."
+    )
+    timeline_block()
+
+
+def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
     st.dataframe(comparison, use_container_width=True, hide_index=True)
 
+    metric_choice = st.selectbox(
+        "Métrica interactiva",
+        ["Recall (C1)", "F1-Score (C1)", "PR-AUC", "Precision (C1)", "ROC-AUC"],
+    )
+    c1, c2 = st.columns(2)
+    with c1:
+        st.plotly_chart(fig_model_metrics(comparison, metric_choice), use_container_width=True)
+    with c2:
+        st.plotly_chart(fig_fn_fp(comparison), use_container_width=True)
+    st.plotly_chart(fig_metrics_radar(comparison), use_container_width=True)
+
+    test_path = REPORTS_DIR / "evaluation_test_xgboost.csv"
     if test_path.exists():
-        st.subheader("Evaluación final · Test (XGBoost producción)")
+        st.subheader("Test · XGBoost (producción)")
         st.dataframe(pd.read_csv(test_path), use_container_width=True, hide_index=True)
 
-    st.subheader("Gráficas del experimento")
-    figures = [
-        ("metrics_validation.png", "Métricas Validation"),
-        ("pr_curves_validation.png", "Curvas Precision-Recall"),
-        ("fn_fp_validation.png", "FN vs FP"),
-        ("confusion_validation.png", "Matrices de confusión"),
-        ("heatmap_validation.png", "Heatmap de métricas"),
-    ]
-    cols = st.columns(2)
-    for i, (name, title) in enumerate(figures):
-        path = FIGURES_DIR / name
-        with cols[i % 2]:
-            st.markdown(f"**{title}**")
-            if path.exists():
-                st.image(str(path), use_container_width=True)
-            else:
-                st.warning(f"No encontrada: {name}")
+    with st.expander("Figuras estáticas del notebook (zoom / referencia)"):
+        figures = [
+            ("metrics_validation.png", "Métricas Validation"),
+            ("pr_curves_validation.png", "Curvas Precision-Recall"),
+            ("confusion_validation.png", "Matrices de confusión"),
+            ("heatmap_validation.png", "Heatmap métricas"),
+        ]
+        cols = st.columns(2)
+        for i, (name, title) in enumerate(figures):
+            path = FIGURES_DIR / name
+            with cols[i % 2]:
+                st.markdown(f"**{title}**")
+                if path.exists():
+                    st.image(str(path), use_container_width=True)
+                else:
+                    st.warning(f"Falta {name}")
 
-    st.markdown(
-        "<div class='mt-disclaimer'>Estas figuras y métricas se generan fuera de Streamlit "
-        "(notebook / script) y se versionan en el repositorio. "
-        "Para regenerarlas: <code>python scripts/train_and_export.py</code>.</div>",
-        unsafe_allow_html=True,
+
+def render_lab() -> None:
+    hero(
+        "MindTrack Insight",
+        "Laboratorio de evidencia: datos, trazabilidad del pipeline y comparativa de modelos "
+        "(artefactos del experimento, solo lectura).",
+        badge="LAB",
     )
+    data = load_lab_artifacts()
+    if data is None:
+        st.error("Faltan `reports/comparison_validation.csv` o `models/metadata.json`.")
+        return
+    comparison, meta = data
+    section = st.session_state.lab_section
+
+    if section == "Panorama":
+        lab_panorama(meta)
+    elif section == "Huella de datos":
+        lab_huella()
+    elif section == "Trazabilidad ML":
+        lab_trazabilidad()
+    elif section == "Arena de modelos":
+        lab_arena(comparison, meta)
 
 
 def main() -> None:
-    mode = sidebar()
-    if mode == "Producción":
-        render_production()
+    sidebar_brand()
+    env = st.session_state.mindtrack_env
+    if env == "PRD":
+        render_prd()
     else:
-        render_laboratory()
+        render_lab()
 
 
 if __name__ == "__main__":

@@ -4,39 +4,56 @@ from src.config import COLORS
 
 
 def inject_css() -> str:
+    green_on = "#22C55E"
+    track_off = "#E8ECF1"
     return f"""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
+    html, body, [class*="css"] {{
+        font-family: 'DM Sans', system-ui, sans-serif;
+    }}
     .stApp {{
-        background: linear-gradient(180deg, {COLORS["bg"]} 0%, #FFFFFF 40%);
+        background: linear-gradient(165deg, {COLORS["bg"]} 0%, #FFFFFF 45%, #F1F5F9 100%);
     }}
     section[data-testid="stSidebar"] {{
-        background: {COLORS["navy"]};
+        background: linear-gradient(180deg, #0B1F3A 0%, {COLORS["navy"]} 55%, #1E3A5F 100%);
         color: white;
+        border-right: 1px solid rgba(255,255,255,0.06);
     }}
     section[data-testid="stSidebar"] * {{
         color: #F8FAFC !important;
     }}
-    section[data-testid="stSidebar"] .stRadio label {{
-        color: #F8FAFC !important;
+    section[data-testid="stSidebar"] .stMarkdown small {{
+        color: #CBD5E1 !important;
+    }}
+    .mt-eyebrow {{
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: {COLORS["slate"]};
+        margin: 0 0 0.25rem 0;
     }}
     .mt-hero {{
         background: {COLORS["white"]};
         border: 1px solid {COLORS["border"]};
-        border-radius: 16px;
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        border-radius: 18px;
+        padding: 1.35rem 1.6rem;
+        margin-bottom: 1.1rem;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
     }}
     .mt-hero h1 {{
         color: {COLORS["navy"]};
-        margin: 0 0 0.35rem 0;
-        font-size: 1.75rem;
-        letter-spacing: -0.02em;
+        margin: 0.25rem 0 0.4rem 0;
+        font-size: 1.85rem;
+        letter-spacing: -0.03em;
+        font-weight: 700;
     }}
     .mt-hero p {{
         color: {COLORS["slate"]};
         margin: 0;
-        font-size: 0.95rem;
+        font-size: 0.98rem;
+        line-height: 1.45;
     }}
     .mt-card {{
         background: {COLORS["white"]};
@@ -44,14 +61,16 @@ def inject_css() -> str:
         border-radius: 14px;
         padding: 1rem 1.1rem;
         margin-bottom: 0.75rem;
+        box-shadow: 0 4px 14px rgba(15,23,42,0.04);
     }}
     .mt-badge {{
         display: inline-block;
-        padding: 0.2rem 0.65rem;
+        padding: 0.22rem 0.7rem;
         border-radius: 999px;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         background: #E2E8F0;
         color: {COLORS["navy"]};
     }}
@@ -75,10 +94,168 @@ def inject_css() -> str:
         border: 1px solid {COLORS["border"]};
         border-radius: 12px;
         padding: 0.75rem 0.9rem;
+        box-shadow: 0 2px 8px rgba(15,23,42,0.04);
     }}
     .block-container {{
-        padding-top: 1.5rem;
-        max-width: 1100px;
+        padding-top: 1.25rem;
+        max-width: 1180px;
+    }}
+    .mt-env-hint {{
+        font-size: 0.78rem;
+        color: #CBD5E1 !important;
+        margin-top: -0.35rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.35;
+    }}
+  /* PRD / LAB neumorphic segmented control */
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] {{
+        background: #0F172A !important;
+        border-radius: 999px !important;
+        padding: 5px !important;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        min-height: 46px;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button {{
+        border-radius: 999px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.08em !important;
+        font-size: 0.82rem !important;
+        border: none !important;
+        background: transparent !important;
+        color: #94A3B8 !important;
+        box-shadow: none !important;
+        transition: all 0.25s ease;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="true"] {{
+        background: {green_on} !important;
+        color: white !important;
+        box-shadow: 0 4px 14px rgba(34,197,94,0.45),
+            inset 0 -2px 0 rgba(0,0,0,0.08) !important;
+    }}
+    div[data-testid="stSidebar"] div[data-baseweb="segmented-control"] button[aria-selected="false"]:hover {{
+        color: #E2E8F0 !important;
+    }}
+    /* Horizontal radio fallback */
+    div[data-testid="stSidebar"] .stRadio > div {{
+        flex-direction: row !important;
+        background: #0F172A;
+        border-radius: 999px;
+        padding: 4px;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+    }}
+    div[data-testid="stSidebar"] .stRadio label {{
+        border-radius: 999px !important;
+        padding: 0.45rem 1.1rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.08em;
+    }}
+    .mt-verdict {{
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin: 0.75rem 0 1rem;
+        flex-wrap: wrap;
+    }}
+    .mt-stamp {{
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        padding: 0.65rem 1.1rem;
+        border-radius: 12px;
+        border: 3px solid;
+        transform: rotate(-4deg);
+        box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+    }}
+    .stamp-risk {{
+        color: {COLORS["accent"]};
+        border-color: {COLORS["accent"]};
+        background: #FFFBEB;
+    }}
+    .stamp-safe {{
+        color: {COLORS["ok"]};
+        border-color: {COLORS["ok"]};
+        background: #F0FDF4;
+    }}
+    .mt-prob b {{
+        font-size: 1.75rem;
+        color: {COLORS["navy"]};
+        display: block;
+    }}
+    .mt-prob small {{
+        color: {COLORS["slate"]};
+        font-size: 0.78rem;
+    }}
+    .mt-gauge-wrap {{
+        margin: 0.5rem 0 1.25rem;
+    }}
+    .mt-gauge {{
+        position: relative;
+        height: 14px;
+        border-radius: 999px;
+        background: {track_off};
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.08);
+        overflow: visible;
+    }}
+    .mt-gauge i {{
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, {COLORS["navy"]}, {COLORS["accent"]});
+        box-shadow: 0 2px 8px rgba(180,83,9,0.35);
+    }}
+    .mt-gauge u {{
+        position: absolute;
+        top: -5px;
+        width: 3px;
+        height: 24px;
+        background: {COLORS["navy"]};
+        border-radius: 2px;
+        text-decoration: none;
+        box-shadow: 0 0 0 2px white;
+    }}
+    .mt-gauge-labels {{
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        color: {COLORS["slate"]};
+        margin-top: 0.35rem;
+    }}
+    .mt-step {{
+        background: {COLORS["white"]};
+        border: 1px solid {COLORS["border"]};
+        border-left: 4px solid {COLORS["navy"]};
+        border-radius: 0 12px 12px 0;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.55rem;
+        font-size: 0.9rem;
+    }}
+    .mt-kpi-grid {{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.65rem;
+        margin-bottom: 1rem;
+    }}
+    @media (max-width: 900px) {{
+        .mt-kpi-grid {{ grid-template-columns: repeat(2, 1fr); }}
+    }}
+    .mt-kpi {{
+        background: white;
+        border: 1px solid {COLORS["border"]};
+        border-radius: 12px;
+        padding: 0.85rem;
+        text-align: center;
+    }}
+    .mt-kpi b {{
+        display: block;
+        font-size: 1.25rem;
+        color: {COLORS["navy"]};
+    }}
+    .mt-kpi span {{
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: {COLORS["slate"]};
     }}
 </style>
 """
