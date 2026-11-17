@@ -10,6 +10,10 @@ import streamlit as st
 from src.config import COLORS
 
 
+def _esc(text: str) -> str:
+    return html.escape(text, quote=True)
+
+
 def eyebrow(text: str) -> None:
     st.markdown(
         f"<p class='mt-eyebrow'>{text}</p>",
@@ -18,53 +22,159 @@ def eyebrow(text: str) -> None:
 
 
 def hero(title: str, subtitle: str, badge: str | None = None) -> None:
-    badge_html = f"<span class='mt-badge'>{badge}</span>" if badge else ""
+    badge_mod = ""
+    if badge:
+        badge_mod = f" mt-hero--{badge.lower()}"
+        badge_html = f"<span class='mt-badge mt-badge-hero'>{_esc(badge)}</span>"
+    else:
+        badge_html = ""
     st.markdown(
         f"""
-        <div class="mt-hero">
+        <div class="mt-hero{badge_mod}">
+            <motion-div class="mt-hero-glow" aria-hidden="true"></div>
             {badge_html}
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
+            <h1>{_esc(title)}</h1>
+            <p>{_esc(subtitle)}</p>
         </div>
-        """,
+        """.replace("motion-div", "div"),
         unsafe_allow_html=True,
     )
 
 
-def verdict_stamp(at_risk: bool, probability: float) -> None:
-    cls = "stamp-risk" if at_risk else "stamp-safe"
-    label = "AT RISK" if at_risk else "NO RISK"
+def render_sidebar_brand() -> None:
+    st.sidebar.markdown(
+        """
+        <motion-div class="mt-brand">
+            <motion-div class="mt-brand-glow" aria-hidden="true"></div>
+            <motion-div class="mt-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="mtRing" x1="8" y1="8" x2="40" y2="40">
+                            <stop stop-color="#38BDF8"/>
+                            <stop offset="1" stop-color="#818CF8"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="24" cy="24" r="22" stroke="url(#mtRing)" stroke-width="2"/>
+                    <path d="M14 28c2-8 6-12 10-12s8 4 10 12" stroke="#7DD3FC" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M18 22c1.5-3 4-5 6-5s4.5 2 6 5" stroke="#E0F2FE" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="24" cy="30" r="3.2" fill="#22D3EE"/>
+                </svg>
+            </motion-div>
+            <motion-div>
+                <motion-div class="mt-brand-title">MindTrack</motion-div>
+                <motion-div class="mt-brand-sub">Riesgo académico · hábitos y bienestar</motion-div>
+                <motion-div class="mt-brand-tags">
+                    <span>Sistemas Inteligentes</span>
+                    <span class="mt-ui-ver">Glass · v2</span>
+                </motion-div>
+            </motion-div>
+        </motion-div>
+        """.replace("motion-div", "div"),
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_status() -> None:
+    st.sidebar.markdown(
+        """
+        <motion-div class="mt-side-glass mt-side-status">
+            <motion-div class="mt-side-status-head">
+                <span class="mt-side-pill">Motor PRD</span>
+                <strong>XGBoost</strong>
+            </motion-div>
+            <p class="mt-side-note">
+                Academic_Performance_Score fuera del ML · escenario preventivo.
+            </p>
+            <motion-div class="mt-side-chips">
+                <span>Recall ≥ 0.85</span>
+                <span>13 features</span>
+                <span>Anti-leakage</span>
+            </motion-div>
+        </motion-div>
+        """.replace("motion-div", "div"),
+        unsafe_allow_html=True,
+    )
+
+
+def panel_heading(title: str, subtitle: str = "") -> None:
+    sub = f"<small>{_esc(subtitle)}</small>" if subtitle else ""
     st.markdown(
-        f"""
-        <div class="mt-verdict">
-            <div class="mt-stamp {cls}">{label}</div>
-            <div class="mt-prob">
-                <b>{probability:.1%}</b>
-                <small>Academic_Failure_Risk · clase 1</small>
-            </div>
-        </div>
-        """,
+        f'<motion-div class="mt-panel-head"><span>{_esc(title)}</span>{sub}</motion-div>'.replace(
+            "motion-div", "div"
+        ),
         unsafe_allow_html=True,
     )
 
 
-def threshold_gauge(probability: float, threshold: float) -> None:
+def profile_chips_header() -> None:
+    st.markdown(
+        '<p class="mt-chip-label">Perfiles de ejemplo</p>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_verdict_block(
+    at_risk: bool,
+    probability: float,
+    threshold: float,
+    risk_band: str = "",
+) -> None:
+    """Tarjeta señal MindTrack (sin estilo sello / veredicto tipo spam)."""
+    mode = "alert" if at_risk else "stable"
+    headline = "Señal de alerta académica" if at_risk else "Señal estable"
+    clase = "Clase 1 · riesgo detectado" if at_risk else "Clase 0 · por debajo del umbral"
+    band = risk_band or "—"
+    tip = (
+        "La probabilidad supera el umbral Validation del pipeline XGBoost."
+        if at_risk
+        else "Probabilidad menor al umbral; el modelo predice clase 0 en este perfil."
+    )
     pct = max(0.0, min(100.0, probability * 100))
-    thr = max(0.0, min(100.0, threshold * 100))
+    thr_pct = max(0.0, min(100.0, threshold * 100))
     st.markdown(
         f"""
-        <div class="mt-gauge-wrap">
-            <div class="mt-gauge">
-                <i style="width:{pct:.1f}%"></i>
-                <u style="left:{thr:.1f}%"></u>
+        <motion-div class="mt-signal-card mt-signal--{mode} mt-tip" data-tip="{_esc(tip)}">
+            <motion-div class="mt-signal-rail" aria-hidden="true"></div>
+            <motion-div class="mt-signal-ring-wrap">
+                <motion-div class="mt-signal-ring" style="--pct: {pct:.2f}; --thr: {thr_pct:.2f};">
+                    <motion-div class="mt-signal-ring-inner">
+                        <b>{probability:.1%}</b>
+                        <small>clase 1</small>
+                    </motion-div>
+                </motion-div>
             </div>
-            <div class="mt-gauge-labels">
-                <span>0%</span><span>Umbral {threshold:.3f}</span><span>100%</span>
-            </div>
-        </div>
+            <motion-div class="mt-signal-body">
+                <span class="mt-signal-kicker">Lectura MindTrack</span>
+                <h2>{_esc(headline)}</h2>
+                <p>{_esc(clase)} · Banda <strong>{_esc(band)}</strong></p>
+                <motion-div class="mt-signal-meta">
+                    <span>Umbral PRD: <b>{threshold:.3f}</b></span>
+                    <span>Δ vs umbral: <b>{(probability - threshold):+.1%}</b></span>
+                </motion-div>
+            </motion-div>
+        </motion-div>
+        """.replace("motion-div", "div"),
+        unsafe_allow_html=True,
+    )
+
+
+def page_footer(env: str) -> None:
+    st.markdown(
+        f"""
+        <footer class="mt-footer">
+            <span>MindTrack · Sistemas Inteligentes</span>
+            <span class="mt-footer-dot">·</span>
+            <span>Modo {_esc(env)}</span>
+            <span class="mt-footer-dot">·</span>
+            <span>Prototipo universitario</span>
+        </footer>
         """,
         unsafe_allow_html=True,
     )
+
+
+def content_divider() -> None:
+    st.markdown('<hr class="mt-divider" />', unsafe_allow_html=True)
 
 
 def init_session_defaults() -> None:
@@ -112,16 +222,14 @@ EXAMPLE_PROFILES = {
 }
 
 
-def _esc(text: str) -> str:
-    return html.escape(text, quote=True)
-
-
 def kpi_grid(cards: Iterable[tuple[str, str, str]]) -> None:
     """KPI cards with hover vignettes (value, label, tip)."""
     blocks = []
-    for value, label, tip in cards:
+    accents = ("c0", "c1", "c2", "c3")
+    for i, (value, label, tip) in enumerate(cards):
+        ac = accents[i % len(accents)]
         blocks.append(
-            f'<div class="mt-kpi mt-tip" data-tip="{_esc(tip)}">'
+            f'<div class="mt-kpi mt-kpi-{ac} mt-tip" data-tip="{_esc(tip)}">'
             f"<b>{_esc(value)}</b><span>{_esc(label)}</span></div>"
         )
     st.markdown(
@@ -166,6 +274,7 @@ def render_insight_nav(sections: list[str] | None = None) -> str:
         st.session_state.lab_section = sections[0]
         current = sections[0]
 
+    st.markdown('<motion-div class="mt-insight-nav-shell">'.replace("motion-div", "div"), unsafe_allow_html=True)
     st.markdown('<p class="mt-insight-nav-label">Explorar Insight</p>', unsafe_allow_html=True)
     cols = st.columns(len(sections))
     for col, name in zip(cols, sections):
@@ -182,12 +291,20 @@ def render_insight_nav(sections: list[str] | None = None) -> str:
             ):
                 st.session_state.lab_section = name
                 st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
     return st.session_state.lab_section
 
 
 def render_env_switch() -> str:
     """PRD / LAB pill-style switch (Streamlit segmented control + CSS)."""
-    st.sidebar.markdown("### Ambiente")
+    st.sidebar.markdown(
+        '<motion-div class="mt-side-glass mt-side-env">'.replace("motion-div", "div"),
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown(
+        '<p class="mt-side-label">Ambiente de trabajo</p>',
+        unsafe_allow_html=True,
+    )
     if hasattr(st.sidebar, "segmented_control"):
         env = st.sidebar.segmented_control(
             "env_switch",
@@ -207,11 +324,12 @@ def render_env_switch() -> str:
         st.session_state.mindtrack_env = env
 
     st.sidebar.markdown(
-        f"<div class='mt-env-hint'>"
+        f"<motion-div class='mt-env-hint mt-env-hint--{env.lower()}'>"
         f"{'Consulta en vivo con XGBoost' if env == 'PRD' else 'Insight · evidencia del experimento'}"
-        f"</div>",
+        f"</motion-div>".replace("motion-div", "div"),
         unsafe_allow_html=True,
     )
+    st.sidebar.markdown("</div>", unsafe_allow_html=True)
     return env
 
 

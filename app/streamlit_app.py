@@ -37,16 +37,21 @@ from src.predict import load_metadata, predict_student
 from src.recommendations import generate_recommendations
 from src.ui_components import (
     EXAMPLE_PROFILES,
+    content_divider,
     hero,
     init_session_defaults,
     insight_note,
     kpi_grid,
+    page_footer,
+    panel_heading,
+    profile_chips_header,
     render_env_switch,
     render_insight_nav,
+    render_sidebar_brand,
+    render_sidebar_status,
+    render_verdict_block,
     section_heading,
-    threshold_gauge,
     timeline_block,
-    verdict_stamp,
 )
 from src.ui_theme import inject_css
 
@@ -74,17 +79,9 @@ def cached_dataset() -> pd.DataFrame:
 
 
 def sidebar_brand() -> None:
-    st.sidebar.markdown("## MindTrack")
-    st.sidebar.caption("Riesgo académico · hábitos digitales y bienestar")
+    render_sidebar_brand()
     render_env_switch()
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(
-        "<span class='mt-badge'>Motor PRD: XGBoost</span>",
-        unsafe_allow_html=True,
-    )
-    st.sidebar.caption(
-        "Academic_Performance_Score fuera del ML (escenario preventivo)."
-    )
+    render_sidebar_status()
 
 
 def preset_values() -> dict:
@@ -93,13 +90,15 @@ def preset_values() -> dict:
 
 def production_form() -> dict | None:
     pv = preset_values()
-    st.markdown("**Perfiles de ejemplo**")
+    profile_chips_header()
+    st.markdown('<motion-div class="mt-chip-bar" aria-hidden="true"></div>'.replace("motion-div", "div"), unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         if st.button(
             EXAMPLE_PROFILES["neutral"]["label"],
             use_container_width=True,
             key="btn_neutral",
+            type="secondary",
         ):
             st.session_state.form_preset = "neutral"
     with c2:
@@ -107,12 +106,14 @@ def production_form() -> dict | None:
             EXAMPLE_PROFILES["alert"]["label"],
             use_container_width=True,
             key="btn_alert",
+            type="primary",
         ):
             st.session_state.form_preset = "alert"
 
     with st.form("student_form", clear_on_submit=False):
         c1, c2, c3 = st.columns(3)
         with c1:
+            panel_heading("Perfil", "Demografía y contexto")
             age = st.number_input("Age", 14, 40, pv["age"], 1)
             gender = st.selectbox("Gender", FORM_CATEGORICAL["Gender"], index=FORM_CATEGORICAL["Gender"].index(pv["gender"]))
             education = st.selectbox(
@@ -121,11 +122,13 @@ def production_form() -> dict | None:
                 index=FORM_CATEGORICAL["Education_Level"].index(pv["education"]),
             )
         with c2:
+            panel_heading("Hábitos", "Digital · sueño · actividad")
             social = st.slider("Daily_Social_Media_Hours", 0.0, 14.0, float(pv["social"]), 0.1)
             ai_hours = st.slider("Daily_AI_Tool_Usage_Hours", 0.0, 10.0, float(pv["ai_hours"]), 0.1)
             sleep = st.slider("Sleep_Hours", 2.0, 12.0, float(pv["sleep"]), 0.1)
             activity = st.slider("Physical_Activity_Hours", 0.0, 6.0, float(pv["activity"]), 0.1)
         with c3:
+            panel_heading("Bienestar", "Salud y burnout")
             mental = st.slider("Mental_Health_Score", 20.0, 100.0, float(pv["mental"]), 0.5)
             physical = st.slider("Physical_Health_Score", 20.0, 100.0, float(pv["physical"]), 0.5)
             isolation = st.slider("Social_Isolation_Score", 1.0, 9.0, float(pv["isolation"]), 0.1)
@@ -134,7 +137,11 @@ def production_form() -> dict | None:
                 FORM_CATEGORICAL["Burnout_Level"],
                 index=FORM_CATEGORICAL["Burnout_Level"].index(pv["burnout"]),
             )
-        submitted = st.form_submit_button("Ejecutar consulta MindTrack", use_container_width=True)
+        submitted = st.form_submit_button(
+            "Ejecutar consulta MindTrack",
+            use_container_width=True,
+            type="primary",
+        )
 
     if not submitted:
         return None
@@ -185,7 +192,13 @@ def render_prd() -> None:
 
     form = production_form()
     if form is None:
-        st.info("Completa el perfil o carga un ejemplo, luego **Ejecutar consulta MindTrack**.")
+        st.markdown(
+            "<div class='mt-card mt-tip' data-tip='No se ejecuta ML hasta enviar el formulario.'>"
+            "Completa el perfil o carga un ejemplo, luego pulsa "
+            "<strong>Ejecutar consulta MindTrack</strong>.</div>",
+            unsafe_allow_html=True,
+        )
+        page_footer("PRD")
         return
 
     with st.spinner("Pipeline en ejecución..."):
@@ -196,18 +209,42 @@ def render_prd() -> None:
             result, recs, top_factors=contrib["feature"].tolist()
         )
 
-    verdict_stamp(result["predicted_class"] == 1, result["probability"])
-    threshold_gauge(result["probability"], result["threshold"])
+    content_divider()
+    render_verdict_block(
+        result["predicted_class"] == 1,
+        result["probability"],
+        result["threshold"],
+        result["risk_band"],
+    )
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Banda", result["risk_band"])
-    m2.metric("Umbral", f"{result['threshold']:.3f}")
-    m3.metric("Clase", "1 · At risk" if result["predicted_class"] else "0 · No risk")
-    m4.metric("Modelo", result["model_label"])
+    m1.metric(
+        "Banda",
+        result["risk_band"],
+        help="BAJO/MODERADO/ALTO según probabilidad vs umbral Validation.",
+    )
+    m2.metric(
+        "Umbral",
+        f"{result['threshold']:.3f}",
+        help="Fijado en Validation para Recall (C1) ≥ 0.85.",
+    )
+    m3.metric(
+        "Clase",
+        "1 · At risk" if result["predicted_class"] else "0 · No risk",
+        help="Decisión binaria: probabilidad ≥ umbral → clase 1.",
+    )
+    m4.metric(
+        "Modelo",
+        result["model_label"],
+        help="XGBoost oficial en models/pipeline_xgboost.joblib.",
+    )
 
     left, right = st.columns((1.1, 1))
     with left:
-        st.subheader("Señales que empujan la predicción")
+        section_heading(
+            "Señales que empujan la predicción",
+            "Barras = contribución aproximada (SHAP o fallback por z-score).",
+        )
         fig = px.bar(
             contrib.sort_values("contribution"),
             x="contribution",
@@ -227,7 +264,10 @@ def render_prd() -> None:
         st.caption(f"Explicación: {contrib['method'].iloc[0]}")
 
     with right:
-        st.subheader("Recomendaciones")
+        section_heading(
+            "Recomendaciones",
+            "Reglas del motor src/recommendations.py (no generativo).",
+        )
         for tip in recs:
             st.markdown(
                 f"<div class='mt-card'><strong>{tip['title']}</strong>"
@@ -236,12 +276,14 @@ def render_prd() -> None:
                 unsafe_allow_html=True,
             )
 
-    st.subheader("Conclusión")
+    content_divider()
+    section_heading("Conclusión", "Texto armado en src/conclusion.py con la predicción y recs.")
     st.markdown(conclusion)
     st.markdown(
         "<div class='mt-disclaimer'>Prototipo académico — no sustituye acompañamiento institucional.</div>",
         unsafe_allow_html=True,
     )
+    page_footer("PRD")
 
 
 def lab_panorama(meta: dict) -> None:
@@ -395,6 +437,8 @@ def render_lab() -> None:
         lab_trazabilidad()
     elif section == "Arena de modelos":
         lab_arena(comparison, meta)
+
+    page_footer("LAB")
 
 
 def main() -> None:
