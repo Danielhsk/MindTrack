@@ -14,3 +14,7 @@ if spec is None or spec.loader is None:
 
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+
+# exec_module sets __name__ != "__main__", so the app's guard never runs on Cloud.
+if hasattr(module, "main"):
+    module.main()
