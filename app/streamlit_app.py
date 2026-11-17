@@ -33,7 +33,7 @@ from src.lab_viz import (
     fig_model_metrics,
     load_dataset,
 )
-from src.predict import load_metadata, predict_student
+from src.predict import load_metadata, panel_opinions, predict_student
 from src.recommendations import generate_recommendations
 from src.ui_components import (
     EXAMPLE_PROFILES,
@@ -47,6 +47,7 @@ from src.ui_components import (
     profile_chips_header,
     render_app_header,
     render_insight_nav,
+    render_panel_opinions,
     render_verdict_block,
     render_static_figure_gallery,
     section_heading,
@@ -196,6 +197,7 @@ def render_prd() -> None:
 
     with st.spinner("Pipeline en ejecución..."):
         result = predict_student(form)
+        opinions = panel_opinions(form)
         contrib = top_contributions(form, k=8)
         recs = generate_recommendations(form)
         conclusion = build_conclusion(
@@ -245,6 +247,14 @@ def render_prd() -> None:
             "entrenado con los datos del proyecto y el mismo flujo del notebook."
         ),
     )
+
+    content_divider()
+    section_heading(
+        "Segunda opinión del comité",
+        "Tres modelos del experimento con su umbral de validación; "
+        "no modifica la decisión oficial de XGBoost.",
+    )
+    render_panel_opinions(opinions)
 
     left, right = st.columns((1.1, 1))
     with left:

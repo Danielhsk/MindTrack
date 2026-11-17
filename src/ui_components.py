@@ -190,6 +190,41 @@ def profile_chips_header() -> None:
     )
 
 
+def render_panel_opinions(panel: dict) -> None:
+    """Tarjeta informativa: 3 probabilidades y grado de acuerdo (no cambia la decisión PRD)."""
+    votes = panel["votes_alert"]
+    total = panel["votes_total"]
+    cols = st.columns(3)
+    for col, row in zip(cols, panel["opinions"]):
+        pct = max(0.0, min(100.0, row["probability"] * 100))
+        thr_pct = max(0.0, min(100.0, row["threshold"] * 100))
+        status = "Alerta" if row["would_alert"] else "Sin alerta"
+        status_cls = "alert" if row["would_alert"] else "ok"
+        official = " · oficial" if row["is_official"] else ""
+        with col:
+            st.markdown(
+                f"""
+                <motion-div class="mt-panel-opinion-card">
+                    <motion-div class="mt-panel-opinion-head">
+                        <span class="mt-panel-opinion-name">{_esc(row["model_label"])}{official}</span>
+                        <span class="mt-panel-opinion-pill mt-panel-opinion-pill--{status_cls}">{status}</span>
+                    </motion-div>
+                    <p class="mt-panel-opinion-proba">{pct:.1f}%</p>
+                    <motion-div class="mt-panel-opinion-track">
+                        <span style="width:{pct:.1f}%;"></span>
+                    </motion-div>
+                    <p class="mt-panel-opinion-meta">Umbral val. {thr_pct:.1f}%</p>
+                </motion-div>
+                """.replace("motion-div", "div"),
+                unsafe_allow_html=True,
+            )
+    st.markdown(
+        f'<p class="mt-panel-opinion-agree">'
+        f'<strong>Acuerdo {votes}/{total}</strong> · {_esc(panel["agreement_text"])}</p>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_verdict_block(
     at_risk: bool,
     probability: float,
