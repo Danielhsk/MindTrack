@@ -221,29 +221,44 @@ def render_prd() -> None:
     m1.metric(
         "Banda",
         result["risk_band"],
-        help="BAJO/MODERADO/ALTO según probabilidad vs umbral Validation.",
+        help=(
+            "Qué tan alto parece el riesgo según la probabilidad del modelo: "
+            "BAJO (lejos del corte), MODERADO (cerca) o ALTO (por encima). "
+            "Es una guía analítica, no un dictamen oficial."
+        ),
     )
     m2.metric(
         "Umbral",
         f"{result['threshold']:.3f}",
-        help="Fijado en Validation para Recall (C1) ≥ 0.85.",
+        help=(
+            "Probabilidad mínima a partir de la cual el sistema marca alerta. "
+            "Se calibró en validación para detectar bien los casos en riesgo "
+            "(prioriza no pasar por alto alertas reales)."
+        ),
     )
     m3.metric(
         "Clase",
         "1 · At risk" if result["predicted_class"] else "0 · No risk",
-        help="Decisión binaria: probabilidad ≥ umbral → clase 1.",
+        help=(
+            "Etiqueta simplificada del modelo: «At risk» si la probabilidad "
+            "supera el umbral; «No risk» si queda por debajo."
+        ),
     )
     m4.metric(
         "Modelo",
         result["model_label"],
-        help="XGBoost oficial en models/pipeline_xgboost.joblib.",
+        help=(
+            "Algoritmo que genera la predicción en esta consulta (XGBoost), "
+            "entrenado con los datos del proyecto y el mismo flujo del notebook."
+        ),
     )
 
     left, right = st.columns((1.1, 1))
     with left:
         section_heading(
             "Señales que empujan la predicción",
-            "Barras = contribución aproximada (SHAP o fallback por z-score).",
+            "Muestra qué variables del perfil empujan el resultado hacia alerta o calma; "
+            "barras más largas = mayor influencia en esta consulta.",
         )
         fig = px.bar(
             contrib.sort_values("contribution"),
@@ -266,7 +281,8 @@ def render_prd() -> None:
     with right:
         section_heading(
             "Recomendaciones",
-            "Reglas del motor src/recommendations.py (no generativo).",
+            "Sugerencias prácticas según el perfil (sueño, redes, bienestar); "
+            "son reglas del proyecto, no texto generado por IA.",
         )
         for tip in recs:
             st.markdown(
@@ -277,7 +293,11 @@ def render_prd() -> None:
             )
 
     content_divider()
-    section_heading("Conclusión", "Texto armado en src/conclusion.py con la predicción y recs.")
+    section_heading(
+        "Conclusión",
+        "Resumen en lenguaje natural que combina probabilidad, banda de riesgo "
+        "y las recomendaciones mostradas arriba.",
+    )
     st.markdown(conclusion)
     st.markdown(
         "<div class='mt-disclaimer'>Prototipo académico — no sustituye acompañamiento institucional.</div>",
@@ -296,29 +316,34 @@ def lab_panorama(meta: dict) -> None:
             (
                 "15,000",
                 "Registros",
-                "Conteo total en data/academic_risk_dataset.csv (mismo archivo del EDA).",
+                "Cantidad de perfiles de estudiantes simulados en el dataset "
+                "con el que se entrenó y evaluó MindTrack.",
             ),
             (
                 f"{risk_pct:.1f}%",
-                "Clase 1 en datos",
-                "Promedio de Academic_Failure_Risk=1 en el CSV (desbalance ~94/6).",
+                "Con riesgo en datos",
+                "Porcentaje de filas marcadas con riesgo académico alto en el dataset; "
+                "la mayoría de casos son «sin riesgo», como en la vida real.",
             ),
             (
                 f"{xgb_val.get('Recall (C1)', 0):.3f}",
-                "Recall XGB · Val",
-                "models/metadata.json → validation_metrics (partición 15 % Validation).",
+                "Detección · validación",
+                "De cada 100 estudiantes en verdadero riesgo, cuántos identifica el modelo "
+                "en la parte de datos reservada para afinar (validación).",
             ),
             (
                 f"{test.get('Recall (C1)', 0):.3f}",
-                "Recall XGB · Test",
-                "metadata test_metrics_production o reports/evaluation_test_xgboost.csv.",
+                "Detección · prueba",
+                "Misma idea en el tramo de datos nunca visto al entrenar (prueba final), "
+                "para comprobar que el resultado se sostiene.",
             ),
         ]
     )
     insight_note(
         f"Experimento exportado · split 70/15/15 · seed {meta['random_state']} · "
         f"Recall objetivo {meta['recall_target']} · producción = XGBoost.",
-        "Generado con scripts/train_and_export.py y versionado en el repo; Insight no reentrena.",
+        "Estos números vienen del entrenamiento ya guardado en el repositorio; "
+        "esta pantalla solo los muestra, no vuelve a entrenar el modelo.",
     )
 
 
@@ -326,7 +351,8 @@ def lab_huella() -> None:
     df = cached_dataset()
     section_heading(
         "Huella de datos",
-        "Gráficas en vivo con Plotly leyendo el CSV local; mismos datos del Entregable 2.",
+        "Explora visualmente el dataset: balance de clases, burnout y correlaciones "
+        "con el riesgo, con los mismos datos del análisis exploratorio del curso.",
     )
     st.caption(f"Dataset: `data/academic_risk_dataset.csv` · {len(df):,} filas.")
     c1, c2 = st.columns(2)
@@ -365,7 +391,8 @@ def lab_huella() -> None:
 def lab_trazabilidad() -> None:
     section_heading(
         "Trazabilidad ML",
-        "Resumen documental alineado a notebooks; cada paso tiene viñeta al pasar el cursor.",
+        "Cronología del proyecto de punta a punta; pasa el cursor sobre cada paso "
+        "para una explicación más detallada.",
     )
     st.markdown(
         "Cadena de decisiones del proyecto MindTrack (Entregables 2 y 3). "
@@ -377,7 +404,8 @@ def lab_trazabilidad() -> None:
 def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
     section_heading(
         "Arena de modelos",
-        "Tablas y gráficas desde reports/comparison_validation.csv + metadata.json.",
+        "Compara métricas de los tres modelos candidatos y elige visualmente "
+        "por qué XGBoost quedó como motor de la consulta en vivo.",
     )
     st.dataframe(comparison, use_container_width=True, hide_index=True)
 
@@ -443,7 +471,10 @@ def render_lab() -> None:
 
 def main() -> None:
     sidebar_brand()
-    env = st.session_state.mindtrack_env
+    env = st.session_state.get("mindtrack_env", "PRD")
+    if env not in ("PRD", "LAB"):
+        env = "PRD"
+        st.session_state.mindtrack_env = env
     if env == "PRD":
         render_prd()
     else:

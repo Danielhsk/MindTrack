@@ -259,10 +259,26 @@ def section_heading(title: str, tip: str) -> None:
 
 
 LAB_NAV: list[tuple[str, str]] = [
-    ("Panorama", "Vista rápida del experimento"),
-    ("Huella de datos", "Exploración del CSV"),
-    ("Trazabilidad ML", "Pasos del pipeline"),
-    ("Arena de modelos", "Comparativa LR / RF / XGB"),
+    (
+        "Panorama",
+        "Números clave del estudio: cuántos estudiantes hay en los datos, "
+        "qué tan frecuente es el riesgo y qué tan bien detecta el modelo los casos en alerta.",
+    ),
+    (
+        "Huella de datos",
+        "Gráficos del dataset: cómo se distribuyen edad, hábitos digitales, sueño "
+        "y bienestar, y su relación con el riesgo académico.",
+    ),
+    (
+        "Trazabilidad ML",
+        "Recorrido paso a paso de cómo se preparan los datos y se entrena el modelo, "
+        "sin volver a entrenar desde esta pantalla.",
+    ),
+    (
+        "Arena de modelos",
+        "Comparación de tres métodos de aprendizaje automático y por qué MindTrack "
+        "usa XGBoost en la consulta en vivo.",
+    ),
 ]
 
 
@@ -274,62 +290,65 @@ def render_insight_nav(sections: list[str] | None = None) -> str:
         st.session_state.lab_section = sections[0]
         current = sections[0]
 
-    st.markdown('<motion-div class="mt-insight-nav-shell">'.replace("motion-div", "div"), unsafe_allow_html=True)
-    st.markdown('<p class="mt-insight-nav-label">Explorar Insight</p>', unsafe_allow_html=True)
-    cols = st.columns(len(sections))
-    for col, name in zip(cols, sections):
-        subtitle = next((h for n, h in LAB_NAV if n == name), "")
-        with col:
-            active = name == current
-            btn_type = "primary" if active else "secondary"
-            if st.button(
-                name,
-                key=f"insight_nav_{name}",
-                use_container_width=True,
-                type=btn_type,
-                help=subtitle,
-            ):
-                st.session_state.lab_section = name
-                st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<p class="mt-insight-nav-label">Explorar Insight</p>', unsafe_allow_html=True)
+        cols = st.columns(len(sections))
+        for col, name in zip(cols, sections):
+            subtitle = next((h for n, h in LAB_NAV if n == name), "")
+            with col:
+                active = name == current
+                btn_type = "primary" if active else "secondary"
+                if st.button(
+                    name,
+                    key=f"insight_nav_{name}",
+                    use_container_width=True,
+                    type=btn_type,
+                    help=subtitle,
+                ):
+                    st.session_state.lab_section = name
+                    st.rerun()
     return st.session_state.lab_section
+
+
+def _resolve_env(choice: str | None) -> str:
+    """PRD/LAB from widget; segmented_control can briefly return None on switch."""
+    current = st.session_state.get("mindtrack_env", "PRD")
+    if choice in ("PRD", "LAB"):
+        return choice
+    return current if current in ("PRD", "LAB") else "PRD"
 
 
 def render_env_switch() -> str:
     """PRD / LAB pill-style switch (Streamlit segmented control + CSS)."""
-    st.sidebar.markdown(
-        '<motion-div class="mt-side-glass mt-side-env">'.replace("motion-div", "div"),
-        unsafe_allow_html=True,
-    )
-    st.sidebar.markdown(
-        '<p class="mt-side-label">Ambiente de trabajo</p>',
-        unsafe_allow_html=True,
-    )
-    if hasattr(st.sidebar, "segmented_control"):
-        env = st.sidebar.segmented_control(
-            "env_switch",
-            options=["PRD", "LAB"],
-            default=st.session_state.mindtrack_env,
-            label_visibility="collapsed",
-        )
-    else:
-        env = st.sidebar.radio(
-            "env_switch",
-            options=["PRD", "LAB"],
-            index=0 if st.session_state.mindtrack_env == "PRD" else 1,
-            horizontal=True,
-            label_visibility="collapsed",
-        )
-    if env:
+    default = _resolve_env(None)
+    with st.sidebar.container(border=True):
+        st.markdown('<p class="mt-side-label">Ambiente de trabajo</p>', unsafe_allow_html=True)
+        if hasattr(st.sidebar, "segmented_control"):
+            choice = st.sidebar.segmented_control(
+                "env_switch",
+                options=["PRD", "LAB"],
+                default=default,
+                label_visibility="collapsed",
+            )
+        else:
+            choice = st.sidebar.radio(
+                "env_switch",
+                options=["PRD", "LAB"],
+                index=0 if default == "PRD" else 1,
+                horizontal=True,
+                label_visibility="collapsed",
+            )
+        env = _resolve_env(choice)
         st.session_state.mindtrack_env = env
-
-    st.sidebar.markdown(
-        f"<motion-div class='mt-env-hint mt-env-hint--{env.lower()}'>"
-        f"{'Consulta en vivo con XGBoost' if env == 'PRD' else 'Insight · evidencia del experimento'}"
-        f"</motion-div>".replace("motion-div", "div"),
-        unsafe_allow_html=True,
-    )
-    st.sidebar.markdown("</div>", unsafe_allow_html=True)
+        hint = (
+            "Consulta en vivo con XGBoost"
+            if env == "PRD"
+            else "Insight · evidencia del experimento"
+        )
+        st.markdown(
+            f"<div class='mt-env-hint mt-env-hint--{env.lower()}'>{hint}</div>",
+            unsafe_allow_html=True,
+        )
     return env
 
 
@@ -343,12 +362,30 @@ def timeline_block() -> None:
         ("06 · Umbral", "Recall (C1) ≥ 0.85 en Validation; Test reservado para informe."),
     ]
     step_tips = {
-        "01 · Integridad": "Origen: EDA Entregable 2 · academic_risk_dataset.csv en data/.",
-        "02 · Anti-leakage": "Decisión de diseño: sin Academic_Performance_Score en features.",
-        "03 · Codificación": "Misma lógica que notebooks: Burnout ordinal + One-Hot.",
-        "04 · Partición": "train_test_split estratificado · models/metadata.json.",
-        "05 · Modelos": "Artefactos joblib en models/ · script train_and_export.py.",
-        "06 · Umbral": "reports/comparison_validation.csv · Recall objetivo 0.85.",
+        "01 · Integridad": (
+            "Revisamos que cada fila del dataset tenga valores coherentes "
+            "(edades válidas, escalas en rango, sin datos vacíos críticos)."
+        ),
+        "02 · Anti-leakage": (
+            "No usamos la nota o desempeño académico directo en el modelo, "
+            "para simular un escenario preventivo real."
+        ),
+        "03 · Codificación": (
+            "Convertimos categorías (género, nivel educativo, burnout) a formato "
+            "numérico que el algoritmo pueda aprender."
+        ),
+        "04 · Partición": (
+            "Dividimos los datos en entrenamiento, validación y prueba "
+            "para medir el modelo sin hacer trampa."
+        ),
+        "05 · Modelos": (
+            "Entrenamos tres alternativas y guardamos la ganadora "
+            "como motor de la consulta en producción."
+        ),
+        "06 · Umbral": (
+            "Ajustamos el punto de corte para priorizar detectar estudiantes "
+            "en verdadero riesgo (pocos falsos negativos)."
+        ),
     }
     for title, text in steps:
         tip = step_tips.get(title, "")
