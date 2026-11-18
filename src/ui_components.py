@@ -73,8 +73,9 @@ def _render_env_widget() -> str:
     return env
 
 
-def render_app_header() -> str:
+def render_app_header(production_model_label: str = "XGBoost") -> str:
     """Barra superior: marca + switch PRD/LAB (sin sidebar)."""
+    prod = _esc(production_model_label)
     with st.container(border=True):
         st.markdown('<span class="mt-appbar-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
         c_brand, c_switch, c_meta = st.columns([1.45, 0.48, 1.05], gap="small")
@@ -104,7 +105,7 @@ def render_app_header() -> str:
             if env == "PRD":
                 st.markdown(
                     "<p class='mt-appbar-meta'><strong>Producción</strong> · "
-                    "XGBoost en vivo<br/><span>Preventivo · sin nota en el modelo</span></p>",
+                    f"{prod} en vivo<br/><span>Preventivo · sin nota en el modelo</span></p>",
                     unsafe_allow_html=True,
                 )
             else:
@@ -149,15 +150,16 @@ def render_sidebar_brand() -> None:
     )
 
 
-def render_sidebar_status() -> None:
+def render_sidebar_status(production_model_label: str = "XGBoost") -> None:
+    prod = _esc(production_model_label)
     with st.sidebar.container(border=True):
         st.markdown('<p class="mt-side-label">Motor en producción</p>', unsafe_allow_html=True)
         st.markdown(
-            """
+            f"""
             <motion-div class="mt-side-status">
                 <motion-div class="mt-side-status-head">
                     <span class="mt-side-pill">PRD</span>
-                    <strong>XGBoost</strong>
+                    <strong>{prod}</strong>
                 </motion-div>
                 <p class="mt-side-note">
                     Consulta preventiva sin usar la nota académica dentro del modelo.
@@ -237,7 +239,7 @@ def render_verdict_block(
     clase = "Riesgo detectado (clase 1)" if at_risk else "Por debajo del umbral (clase 0)"
     band = risk_band or "—"
     tip = (
-        "La probabilidad supera el umbral Validation del pipeline XGBoost."
+        "La probabilidad supera el umbral de validación del modelo de producción."
         if at_risk
         else "Probabilidad menor al umbral; el modelo predice clase 0 en este perfil."
     )
@@ -420,7 +422,7 @@ LAB_NAV: list[tuple[str, str]] = [
     (
         "Arena de modelos",
         "Comparación de tres métodos de aprendizaje automático y por qué MindTrack "
-        "usa XGBoost en la consulta en vivo.",
+        "compara LR, RF y XGB en validation/test y muestra el motor de producción.",
     ),
 ]
 
@@ -464,8 +466,8 @@ def timeline_block() -> None:
         ("02 · Anti-leakage", "Se excluye Academic_Performance_Score del modelado preventivo."),
         ("03 · Codificación", "Burnout ordinal · One-Hot en Gender y Education_Level."),
         ("04 · Partición", "70 % Train · 15 % Validation · 15 % Test (estratificado, seed 42)."),
-        ("05 · Modelos", "Logistic Regression · Random Forest · XGBoost (oficial PRD)."),
-        ("06 · Umbral", "Recall (C1) ≥ 0.85 en Validation; Test reservado para informe."),
+        ("05 · Modelos", "LR · RF · XGB; ganador en test = motor PRD (metadata)."),
+        ("06 · Umbral", "Recall ≥ 0.85 en Validation; comparación completa en Test."),
     ]
     step_tips = {
         "01 · Integridad": (
@@ -485,8 +487,8 @@ def timeline_block() -> None:
             "para medir el modelo sin hacer trampa."
         ),
         "05 · Modelos": (
-            "Entrenamos tres alternativas y guardamos la ganadora "
-            "como motor de la consulta en producción."
+            "Entrenamos tres alternativas; el ganador en test queda "
+            "como motor de la consulta (ver comparison_test.csv)."
         ),
         "06 · Umbral": (
             "Ajustamos el punto de corte para priorizar detectar estudiantes "

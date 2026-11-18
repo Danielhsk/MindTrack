@@ -1,4 +1,4 @@
-"""MindTrack Streamlit — PRD (consulta XGBoost) + LAB (Insight, solo lectura)."""
+"""MindTrack Streamlit — PRD (inferencia producción) + LAB (Insight, solo lectura)."""
 
 from __future__ import annotations
 
@@ -166,19 +166,28 @@ def load_lab_artifacts() -> tuple[pd.DataFrame, dict] | None:
     return comparison, meta
 
 
-def render_prd() -> None:
-    hero(
-        "Consulta MindTrack",
-        "Completa el perfil del estudiante y recibe una estimación de riesgo académico, "
-        "los factores que más influyen y recomendaciones orientadas al bienestar. "
-        "La predicción oficial usa XGBoost, sin incluir la nota directa en el modelo.",
-        badge="PRD",
-    )
+def _production_label() -> str:
+    meta_path = MODELS_DIR / "metadata.json"
+    if not meta_path.exists():
+        return "XGBoost"
+    return json.loads(meta_path.read_text(encoding="utf-8")).get("production_model_label", "XGBoost")
 
+
+def render_prd() -> None:
     meta_path = MODELS_DIR / "metadata.json"
     if not meta_path.exists():
         st.error("Ejecuta `python scripts/train_and_export.py` para generar artefactos.")
         return
+    prod_label = _production_label()
+
+    hero(
+        "Consulta MindTrack",
+        "Completa el perfil del estudiante y recibe una estimación de riesgo académico, "
+        "los factores que más influyen y recomendaciones orientadas al bienestar. "
+        f"La predicción oficial usa {prod_label} (elegido por métricas en test), "
+        "sin incluir la nota directa en el modelo.",
+        badge="PRD",
+    )
 
     form = production_form()
     if form is None:
@@ -195,7 +204,7 @@ def render_prd() -> None:
     with st.status("Ejecutando consulta…", expanded=True) as run_status:
         st.write("Validando y transformando los datos del perfil…")
         result = predict_student(form)
-        st.write("Calculando probabilidad con XGBoost (motor oficial)…")
+        st.write(f"Calculando probabilidad con {prod_label} (motor oficial)…")
         opinions = panel_opinions(form)
         st.write("Preparando explicación, segunda opinión y recomendaciones…")
         contrib = top_contributions(form, k=8)
@@ -245,8 +254,7 @@ def render_prd() -> None:
         "Modelo",
         result["model_label"],
         help=(
-            "Algoritmo que genera la predicción en esta consulta (XGBoost), "
-            "entrenado con los datos del proyecto y el mismo flujo del notebook."
+            f"Algoritmo de producción ({prod_label}), elegido tras comparar LR, RF y XGBoost en test."
         ),
     )
 
@@ -254,7 +262,7 @@ def render_prd() -> None:
     section_heading(
         "Segunda opinión del comité",
         "Tres modelos del experimento con su umbral de validación; "
-        "no modifica la decisión oficial de XGBoost.",
+        f"no modifica la decisión oficial de {prod_label}.",
     )
     render_panel_opinions(opinions)
 
@@ -314,7 +322,8 @@ def render_prd() -> None:
 def lab_panorama(meta: dict) -> None:
     test = meta.get("test_metrics_production", {})
     val = meta.get("validation_metrics", [])
-    xgb_val = next((m for m in val if m["Modelo"] == "XGBoost"), {})
+    prod_label = meta.get("production_model_label", "XGBoost")
+    prod_val = next((m for m in val if m["Modelo"] == prod_label), {})
     risk_pct = cached_dataset()[TARGET].mean() * 100
     kpi_grid(
         [
@@ -331,8 +340,8 @@ def lab_panorama(meta: dict) -> None:
                 "la mayoría de casos son «sin riesgo», como en la vida real.",
             ),
             (
-                f"{xgb_val.get('Recall (C1)', 0):.3f}",
-                "Detección · validación",
+                f"{prod_val.get('Recall (C1)', 0):.3f}",
+                f"Detección · validación ({prod_label})",
                 "De cada 100 estudiantes en verdadero riesgo, cuántos identifica el modelo "
                 "en la parte de datos reservada para afinar (validación).",
             ),
@@ -346,7 +355,7 @@ def lab_panorama(meta: dict) -> None:
     )
     insight_note(
         f"Experimento exportado · split 70/15/15 · seed {meta['random_state']} · "
-        f"Recall objetivo {meta['recall_target']} · producción = XGBoost.",
+        f"Recall objetivo {meta['recall_target']} · producción = {prod_label}.",
         "Estos números vienen del entrenamiento ya guardado en el repositorio; "
         "esta pantalla solo los muestra, no vuelve a entrenar el modelo.",
     )
@@ -410,8 +419,9 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
     section_heading(
         "Arena de modelos",
         "Compara métricas de los tres modelos candidatos y elige visualmente "
-        "por qué XGBoost quedó como motor de la consulta en vivo.",
+        "métricas en validación y la evaluación final en test (mismos umbrales de validación).",
     )
+    st.markdown("#### Validación (calibración de umbral)")
     st.dataframe(comparison, use_container_width=True, hide_index=True)
 
     cm_cols = {"Modelo", "TN", "FP", "FN", "TP"}
@@ -446,10 +456,29 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
         st.plotly_chart(fig_fn_fp(comparison), use_container_width=True)
     st.plotly_chart(fig_metrics_radar(comparison), use_container_width=True)
 
-    test_path = REPORTS_DIR / "evaluation_test_xgboost.csv"
-    if test_path.exists():
-        st.subheader("Test · XGBoost (producción)")
-        st.dataframe(pd.read_csv(test_path), use_container_width=True, hide_index=True)
+    test_all_path = REPORTS_DIR / "comparison_test.csv"
+    if test_all_path.exists():
+        test_df = pd.read_csv(test_all_path)
+        prod_label = meta.get("production_model_label", "XGBoost")
+        sel = meta.get("selection_criteria", {})
+        content_divider()
+        section_heading(
+            "Test · los tres modelos",
+            "Evaluación en datos nunca usados para entrenar ni para elegir umbral. "
+            "Cada fila usa el τ aprendido en validación (sin re-ajuste).",
+        )
+        st.dataframe(test_df, use_container_width=True, hide_index=True)
+        if sel.get("test_selection_steps"):
+            st.markdown(
+                f"**Modelo de producción ({prod_label})** — criterio: "
+                + " ".join(sel["test_selection_steps"])
+            )
+        if {"Modelo", "FN", "FP"}.issubset(test_df.columns):
+            st.plotly_chart(
+                fig_fn_fp(test_df.set_index("Modelo")),
+                use_container_width=True,
+                key="fn_fp_test",
+            )
 
     content_divider()
     from src.colab_assets import ML_EXPORT_GALLERY
@@ -493,7 +522,8 @@ def render_lab() -> None:
 
 
 def main() -> None:
-    render_app_header()
+    prod_label = _production_label()
+    render_app_header(prod_label)
     env = st.session_state.get("mindtrack_env", "PRD")
     if env not in ("PRD", "LAB"):
         env = "PRD"

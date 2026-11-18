@@ -42,11 +42,12 @@ from src.config import (  # noqa: E402
     FIGURES_DIR,
     MODEL_LABELS,
     MODELS_DIR,
-    PRODUCTION_MODEL_KEY,
     RANDOM_STATE,
     RECALL_TARGET,
     REPORTS_DIR,
 )
+
+LABEL_TO_KEY = {v: k for k, v in MODEL_LABELS.items()}
 from src.preprocessing import preprocess  # noqa: E402
 
 
@@ -68,6 +69,40 @@ def find_threshold(y_true, y_proba, recall_target: float = RECALL_TARGET) -> flo
         return float(thresholds.min())
     f1 = 2 * precision[valid] * recall[valid] / (precision[valid] + recall[valid] + 1e-12)
     return float(thresholds[valid][np.argmax(f1)])
+
+
+def select_production_model(metrics_df: pd.DataFrame) -> tuple[str, str, list[str]]:
+    """Pick production model: Recall ≥ target, then F1, PR-AUC, precision, fewer FP, fewer FN."""
+    df = metrics_df.copy()
+    if df.index.name == "Modelo" or (
+        isinstance(df.index, pd.Index) and df.index.name is None and "Modelo" not in df.columns
+    ):
+        df = df.reset_index()
+    if "Modelo" not in df.columns:
+        raise ValueError("metrics_df must include a 'Modelo' column or index")
+
+    steps: list[str] = [
+        f"Recall objetivo ≥ {RECALL_TARGET} (umbral fijado en validación, sin re-ajuste en test).",
+    ]
+    eligible = df[df["Cumple Recall"]].copy()
+    if eligible.empty:
+        steps.append("Ningún modelo cumple recall en esta partición; se elige el de mayor recall.")
+        eligible = df.copy()
+        eligible = eligible.sort_values("Recall (C1)", ascending=False)
+    else:
+        steps.append(
+            f"Entre {len(eligible)} candidato(s) que cumplen: ordenar por F1 → PR-AUC → "
+            "precisión → menos FP → menos FN."
+        )
+        eligible = eligible.sort_values(
+            ["F1-Score (C1)", "PR-AUC", "Precision (C1)", "FP", "FN"],
+            ascending=[False, False, False, True, True],
+        )
+
+    winner_label = str(eligible.iloc[0]["Modelo"])
+    winner_key = LABEL_TO_KEY[winner_label]
+    steps.append(f"Ganador: {winner_label}.")
+    return winner_label, winner_key, steps
 
 
 def metrics_row(name: str, y_true, y_proba, threshold: float) -> dict:
@@ -211,6 +246,46 @@ def save_figures(comparison: pd.DataFrame, proba_val: dict, y_val, thresholds: d
     plt.close(fig)
 
 
+def save_test_figures(comparison_test: pd.DataFrame) -> None:
+    """Summary charts for the held-out test split (all models, validation thresholds)."""
+    sns.set_theme(style="whitegrid")
+    metrics = ["Recall (C1)", "F1-Score (C1)", "Precision (C1)", "PR-AUC", "ROC-AUC"]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    comparison_test[metrics].plot(
+        kind="bar",
+        ax=ax,
+        color=[COLORS["navy"], COLORS["slate"], COLORS["mist"], COLORS["accent"], "#64748B"],
+    )
+    ax.axhline(RECALL_TARGET, color=COLORS["accent"], linestyle="--", label=f"Recall target {RECALL_TARGET}")
+    ax.set_ylim(0, 1.05)
+    ax.set_title("Test metrics · model comparison (thresholds from Validation)", fontweight="bold", color=COLORS["navy"])
+    ax.legend(frameon=False, fontsize=8)
+    plt.xticks(rotation=15)
+    fig.tight_layout()
+    fig.savefig(FIGURES_DIR / "metrics_test.png", dpi=140)
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    x = np.arange(len(comparison_test))
+    ax.bar(x - 0.2, comparison_test["FN"], 0.4, label="FN", color=COLORS["accent"])
+    ax.bar(x + 0.2, comparison_test["FP"], 0.4, label="FP", color=COLORS["slate"])
+    ax.set_xticks(x)
+    ax.set_xticklabels(comparison_test.index, rotation=10)
+    ax.set_title("False Negatives vs False Positives · Test", fontweight="bold", color=COLORS["navy"])
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(FIGURES_DIR / "fn_fp_test.png", dpi=140)
+    plt.close(fig)
+
+    heat_cols = ["Recall (C1)", "Precision (C1)", "F1-Score (C1)", "PR-AUC", "ROC-AUC"]
+    fig, ax = plt.subplots(figsize=(7, 3.6))
+    sns.heatmap(comparison_test[heat_cols], annot=True, fmt=".3f", cmap="YlGnBu", ax=ax)
+    ax.set_title("Metrics heatmap · Test", fontweight="bold", color=COLORS["navy"])
+    fig.tight_layout()
+    fig.savefig(FIGURES_DIR / "heatmap_test.png", dpi=140)
+    plt.close(fig)
+
+
 def main() -> None:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -241,32 +316,57 @@ def main() -> None:
     comparison = pd.DataFrame(rows_val).set_index("Modelo")
     comparison.to_csv(REPORTS_DIR / "comparison_validation.csv")
 
-    # Production model (XGBoost) evaluated on Test with its Validation threshold
-    prod_label = MODEL_LABELS[PRODUCTION_MODEL_KEY]
-    prod_thr = thresholds[prod_label]
-    prod_pipe = fitted[PRODUCTION_MODEL_KEY]
-    proba_test = prod_pipe.predict_proba(X_test)[:, 1]
-    test_row = metrics_row(prod_label, y_test, proba_test, prod_thr)
-    pd.DataFrame([test_row]).to_csv(REPORTS_DIR / "evaluation_test_xgboost.csv", index=False)
+    winner_val_label, winner_val_key, steps_val = select_production_model(comparison)
+
+    rows_test = []
+    for key, pipe in fitted.items():
+        label = MODEL_LABELS[key]
+        thr = thresholds[label]
+        proba_test = pipe.predict_proba(X_test)[:, 1]
+        rows_test.append(metrics_row(label, y_test, proba_test, thr))
+
+    comparison_test = pd.DataFrame(rows_test).set_index("Modelo")
+    comparison_test.to_csv(REPORTS_DIR / "comparison_test.csv")
+
+    prod_label, prod_key, steps_test = select_production_model(comparison_test)
+    test_row = comparison_test.loc[prod_label].to_dict()
+    test_row["Modelo"] = prod_label
+
+    # Legacy single-row export (production winner)
+    prod_test_df = pd.DataFrame([test_row])
+    prod_test_df.to_csv(REPORTS_DIR / "evaluation_test_production.csv", index=False)
+    prod_test_df.to_csv(REPORTS_DIR / "evaluation_test_xgboost.csv", index=False)
+    comparison_test.reset_index().to_csv(REPORTS_DIR / "evaluation_test_all_models.csv", index=False)
 
     save_figures(comparison, proba_val, y_val, thresholds)
+    save_test_figures(comparison_test)
 
     metadata = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "random_state": RANDOM_STATE,
         "recall_target": RECALL_TARGET,
         "feature_names": X_train.columns.tolist(),
-        "production_model_key": PRODUCTION_MODEL_KEY,
+        "production_model_key": prod_key,
         "production_model_label": prod_label,
+        "selection_criteria": {
+            "validation_winner_label": winner_val_label,
+            "validation_winner_key": winner_val_key,
+            "validation_selection_steps": steps_val,
+            "test_winner_label": prod_label,
+            "test_winner_key": prod_key,
+            "test_selection_steps": steps_test,
+        },
         "thresholds": {
             MODEL_LABELS[k]: thresholds[MODEL_LABELS[k]] for k in pipelines
         },
         "validation_metrics": comparison.reset_index().to_dict(orient="records"),
+        "test_metrics_all": comparison_test.reset_index().to_dict(orient="records"),
         "test_metrics_production": test_row,
         "split": {"train": 0.70, "validation": 0.15, "test": 0.15},
         "notes": (
             "Academic_Performance_Score excluded (data leakage / preventive scenario). "
-            "Production UI uses XGBoost. Laboratory visualizes these exported artifacts only."
+            f"Production UI uses {prod_label} (selected from Test comparison). "
+            "Laboratory visualizes these exported artifacts only."
         ),
     }
     (MODELS_DIR / "metadata.json").write_text(
@@ -275,7 +375,14 @@ def main() -> None:
 
     print("\n=== Validation comparison ===")
     print(comparison.round(4).to_string())
-    print("\n=== Production (XGBoost) Test ===")
+    print(f"\n=== Suggested winner (Validation only): {winner_val_label} ===")
+    for s in steps_val:
+        print(f"  · {s}")
+    print("\n=== Test comparison (all models, Validation thresholds) ===")
+    print(comparison_test.round(4).to_string())
+    print(f"\n=== Production model (data-driven · Test): {prod_label} ===")
+    for s in steps_test:
+        print(f"  · {s}")
     print(pd.Series(test_row).to_string())
     print(f"\nArtifacts written to {MODELS_DIR} and {REPORTS_DIR}")
 

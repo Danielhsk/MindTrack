@@ -1,0 +1,70 @@
+# Docker · MindTrack
+
+Contenedor para ejecutar la aplicación Streamlit con los **modelos y reportes ya versionados** en el repositorio. No entrena al arrancar.
+
+## Requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS) o Docker Engine + Compose (Linux)
+
+## Inicio rápido
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose up --build
+```
+
+Abrir en el navegador: **http://localhost:8501**
+
+Detener: `Ctrl+C` o `docker compose down`
+
+## Solo Docker (sin Compose)
+
+```bash
+docker build -t mindtrack:latest .
+docker run --rm -p 8501:8501 mindtrack:latest
+```
+
+## Qué incluye la imagen
+
+| Ruta en imagen | Uso |
+|----------------|-----|
+| `app/streamlit_app.py` | Entrypoint Streamlit |
+| `src/` | Preprocesamiento, inferencia, SHAP, UI |
+| `models/*.joblib` + `metadata.json` | Motor de producción (`production_model_key`) |
+| `data/` | Dataset (Laboratorio / trazabilidad) |
+| `reports/` | CSV y PNG del experimento |
+| `.streamlit/config.toml` | Tema y `headless` |
+
+## Regenerar modelos (host, no contenedor)
+
+Si cambias datos o hiperparámetros:
+
+```bash
+python scripts/train_and_export.py
+docker compose build --no-cache
+docker compose up
+```
+
+## Variables de entorno útiles
+
+| Variable | Efecto |
+|----------|--------|
+| `STREAMLIT_SERVER_HEADLESS=true` | Sin abrir navegador en el servidor |
+| `STREAMLIT_BROWSER_GATHER_USAGE_STATS=false` | Sin telemetría de uso |
+
+## Despliegue
+
+- **Académico / demo:** `docker compose` en VM o laptop del equipo.
+- **Alternativa:** [Streamlit Cloud](https://streamlit.io/cloud) con el mismo entrypoint (`app/streamlit_app.py`).
+- La imagen no incluye GPU; XGBoost y SHAP corren en CPU.
+
+## Solución de problemas
+
+| Síntoma | Acción |
+|---------|--------|
+| Puerto 8501 ocupado | En `docker-compose.yml` usar `"8502:8501"` |
+| Faltan modelos | Ejecutar `train_and_export.py` y volver a `docker build` |
+| Healthcheck falla al inicio | Esperar ~40 s (SHAP / imports en frío) |
+
+Ver también: [README.md](../README.md) · [models/README.md](../models/README.md)

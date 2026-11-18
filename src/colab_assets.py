@@ -72,6 +72,21 @@ ML_EXPORT_GALLERY: list[tuple[str, str, str]] = [
         "Heatmap de métricas",
         "Vista compacta de todas las métricas por algoritmo.",
     ),
+    (
+        "metrics_test.png",
+        "Métricas en test",
+        "Comparación de los tres modelos en el conjunto de prueba final.",
+    ),
+    (
+        "fn_fp_test.png",
+        "FN / FP en test",
+        "Errores en prueba con umbrales fijados en validación.",
+    ),
+    (
+        "heatmap_test.png",
+        "Heatmap · test",
+        "Métricas agregadas en la partición de prueba.",
+    ),
 ]
 
 # Backward-compatible aliases (older imports from src.config)

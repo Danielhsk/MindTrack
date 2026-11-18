@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-11-17T01:23:26.731513+00:00",
+  "generated_at_utc": "2026-11-18T22:48:18.675462+00:00",
   "random_state": 42,
   "recall_target": 0.85,
   "feature_names": [
@@ -19,6 +19,22 @@
   ],
   "production_model_key": "xgboost",
   "production_model_label": "XGBoost",
+  "selection_criteria": {
+    "validation_winner_label": "Logistic Regression",
+    "validation_winner_key": "logistic_regression",
+    "validation_selection_steps": [
+      "Recall objetivo ≥ 0.85 (umbral fijado en validación, sin re-ajuste en test).",
+      "Entre 3 candidato(s) que cumplen: ordenar por F1 → PR-AUC → precisión → menos FP → menos FN.",
+      "Ganador: Logistic Regression."
+    ],
+    "test_winner_label": "XGBoost",
+    "test_winner_key": "xgboost",
+    "test_selection_steps": [
+      "Recall objetivo ≥ 0.85 (umbral fijado en validación, sin re-ajuste en test).",
+      "Entre 3 candidato(s) que cumplen: ordenar por F1 → PR-AUC → precisión → menos FP → menos FN.",
+      "Ganador: XGBoost."
+    ]
+  },
   "thresholds": {
     "Logistic Regression": 0.9041006405363122,
     "Random Forest": 0.4180887884383975,
@@ -68,8 +84,51 @@
       "Cumple Recall": true
     }
   ],
+  "test_metrics_all": [
+    {
+      "Modelo": "Logistic Regression",
+      "Umbral": 0.9041006405363122,
+      "Recall (C1)": 0.8518518518518519,
+      "Precision (C1)": 0.756578947368421,
+      "F1-Score (C1)": 0.8013937282229965,
+      "PR-AUC": 0.9183800837625552,
+      "ROC-AUC": 0.9935942561947291,
+      "FN": 20,
+      "FP": 37,
+      "TP": 115,
+      "TN": 2078,
+      "Cumple Recall": true
+    },
+    {
+      "Modelo": "Random Forest",
+      "Umbral": 0.4180887884383975,
+      "Recall (C1)": 0.9111111111111111,
+      "Precision (C1)": 0.727810650887574,
+      "F1-Score (C1)": 0.8092105263157895,
+      "PR-AUC": 0.9255865523626983,
+      "ROC-AUC": 0.9944348130636547,
+      "FN": 12,
+      "FP": 46,
+      "TP": 123,
+      "TN": 2069,
+      "Cumple Recall": true
+    },
+    {
+      "Modelo": "XGBoost",
+      "Umbral": 0.7275980114936829,
+      "Recall (C1)": 0.8814814814814815,
+      "Precision (C1)": 0.7727272727272727,
+      "F1-Score (C1)": 0.8235294117647058,
+      "PR-AUC": 0.933364045119457,
+      "ROC-AUC": 0.9943962875404956,
+      "FN": 16,
+      "FP": 35,
+      "TP": 119,
+      "TN": 2080,
+      "Cumple Recall": true
+    }
+  ],
   "test_metrics_production": {
-    "Modelo": "XGBoost",
     "Umbral": 0.7275980114936829,
     "Recall (C1)": 0.8814814814814815,
     "Precision (C1)": 0.7727272727272727,
@@ -80,12 +139,13 @@
     "FP": 35,
     "TP": 119,
     "TN": 2080,
-    "Cumple Recall": true
+    "Cumple Recall": true,
+    "Modelo": "XGBoost"
   },
   "split": {
     "train": 0.7,
     "validation": 0.15,
     "test": 0.15
   },
-  "notes": "Academic_Performance_Score excluded (data leakage / preventive scenario). Production UI uses XGBoost. Laboratory visualizes these exported artifacts only."
+  "notes": "Academic_Performance_Score excluded (data leakage / preventive scenario). Production UI uses XGBoost (selected from Test comparison). Laboratory visualizes these exported artifacts only."
 }

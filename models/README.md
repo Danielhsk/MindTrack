@@ -6,14 +6,16 @@ Artefactos generados por `python scripts/train_and_export.py` (misma lógica que
 |---------|-------------|
 | `pipeline_logistic_regression.joblib` | Baseline LR (`StandardScaler` + `class_weight='balanced'`) |
 | `pipeline_random_forest.joblib` | Random Forest (`class_weight='balanced_subsample'`) |
-| `pipeline_xgboost.joblib` | **Modelo de producción** |
-| `metadata.json` | Features, umbrales Validation, métricas, timestamp |
+| `pipeline_xgboost.joblib` | XGBoost (candidato boosting) |
+| `metadata.json` | Features, umbrales, métricas val./test, **`production_model_key`**, criterio de selección |
 
 ## Producción
 
-- Clave: `xgboost`
-- Umbral: el de Validation que cumple Recall (C1) ≥ 0.85 con mejor F1 posible
-- La app carga únicamente `pipeline_xgboost.joblib` para inferencia en vivo
+- Clave actual: `metadata.json` → `production_model_key` (elegida por métricas en **test**)
+- Umbral: τ calibrado en validación (sin re-ajuste en test)
+- La app carga `pipeline_{production_model_key}.joblib` para inferencia en vivo
+
+Reportes: `reports/comparison_validation.csv` y `reports/comparison_test.csv`
 
 ## Regenerar
 

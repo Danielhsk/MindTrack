@@ -27,8 +27,11 @@ def load_metadata(path: str | None = None) -> dict:
 
 @lru_cache(maxsize=1)
 def load_production_pipeline(path: str | None = None):
-    pipe_path = Path(path) if path else MODELS_DIR / f"pipeline_{PRODUCTION_MODEL_KEY}.joblib"
-    return joblib.load(pipe_path)
+    if path:
+        return joblib.load(Path(path))
+    meta = load_metadata()
+    model_key = meta.get("production_model_key", PRODUCTION_MODEL_KEY)
+    return joblib.load(MODELS_DIR / f"pipeline_{model_key}.joblib")
 
 
 @lru_cache(maxsize=len(PANEL_MODEL_KEYS))
@@ -48,7 +51,7 @@ def probability_to_band(proba: float, threshold: float) -> str:
 
 
 def predict_student(form: dict) -> dict:
-    """Run real ML inference with XGBoost + Validation-tuned threshold."""
+    """Run production inference (model from metadata) + validation-tuned threshold."""
     meta = load_metadata()
     pipeline = load_production_pipeline()
     features = meta["feature_names"]

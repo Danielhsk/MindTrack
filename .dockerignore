@@ -1,0 +1,32 @@
+# Entornos y caché
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ipynb_checkpoints
+.cursor
+
+# Git / IDE
+.git
+.gitignore
+.idea
+.vscode
+
+# Artefactos pesados o locales (la imagen incluye models/ y reports/ del repo)
+*.log
+.env
+.streamlit/secrets.toml
+
+# Medios grandes (no usados por la app)
+Imagenes/
+*.mp4
+
+# Notebooks e informes (no necesarios en runtime)
+notebooks/
+MindTrack_*.ipynb
+docs/Informe_*.docx
+
+# Raíz duplicada / scripts de entrenamiento (no runtime)
+scripts/
+artefactos/

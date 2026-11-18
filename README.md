@@ -5,7 +5,7 @@ Asignatura: Sistemas Inteligentes · Prototipo universitario (Machine Learning +
 
 MindTrack permite ingresar el perfil de un estudiante (hábitos digitales, sueño, actividad física, bienestar y burnout) y obtener:
 
-1. Predicción de `Academic_Failure_Risk` con **XGBoost**
+1. Predicción de `Academic_Failure_Risk` con el modelo de **producción** (actualmente **XGBoost**, según test)
 2. Probabilidad y banda de riesgo (BAJO / MODERADO / ALTO)
 3. Factores relevantes de la predicción
 4. Recomendaciones basadas en reglas
@@ -25,20 +25,27 @@ MindTrack permite ingresar el perfil de un estudiante (hábitos digitales, sueñ
 | **Excluido del ML** | `Academic_Performance_Score` (data leakage / escenario preventivo) |
 | **Modelos** | Logistic Regression · Random Forest · **XGBoost (producción)** |
 | **Split** | 70 % train / 15 % validation / 15 % test · `random_state=42` |
-| **Criterio** | Recall (clase 1) ≥ 0.85 en Validation (umbral ajustado) |
-| **App** | Streamlit · módulo **Producción** (inferencia) + **Laboratorio** (resultados del experimento, solo lectura) |
+| **Criterio** | Recall (clase 1) ≥ 0.85; umbral en Validation; **producción elegida por métricas en Test** (F1 → PR-AUC → precisión → menos FP → menos FN) |
+| **App** | Streamlit · **Producción** + **Laboratorio** · Docker opcional (`docker compose up`) |
+| **Despliegue** | Local, [Docker](docs/DOCKER.md) o Streamlit Cloud |
 
-### Métricas recientes (Validation, umbral ajustado)
+### Validation (umbral ajustado por modelo)
 
-| Modelo | Recall (C1) | F1 (C1) | PR-AUC | Cumple Recall |
-|--------|------------:|--------:|-------:|:-------------:|
-| Logistic Regression | 0.852 | 0.819 | 0.917 | Sí |
-| Random Forest | 0.874 | 0.787 | 0.899 | Sí |
-| **XGBoost** | **0.859** | **0.789** | **0.915** | **Sí** |
+| Modelo | Recall | F1 | PR-AUC | FN | FP | Ganador solo val. |
+|--------|-------:|---:|-------:|---:|---:|:-------------------|
+| **Logistic Regression** | 0.852 | **0.819** | **0.917** | 20 | **31** | **Sí (F1)** |
+| Random Forest | 0.874 | 0.787 | 0.899 | 17 | 47 | — |
+| XGBoost | 0.859 | 0.789 | 0.915 | 19 | 43 | — |
 
-**Producción (XGBoost) en Test:** Recall ≈ **0.881** · F1 ≈ **0.824** · PR-AUC ≈ **0.933**.
+### Test (τ fijado en Validation, sin re-ajuste · `reports/comparison_test.csv`)
 
-XGBoost se fija como modelo oficial de despliegue (candidato principal del diseño del proyecto, cumple el Recall objetivo y generaliza bien en Test). La comparación completa vive en el módulo Laboratorio y en los notebooks.
+| Modelo | Recall | F1 | PR-AUC | FN | FP | Producción |
+|--------|-------:|---:|-------:|---:|---:|:----------:|
+| Logistic Regression | 0.852 | 0.801 | 0.918 | 20 | 37 | — |
+| Random Forest | 0.911 | 0.809 | 0.926 | 12 | 46 | — |
+| **XGBoost** | **0.881** | **0.824** | **0.933** | **16** | **35** | **Sí** |
+
+En validación gana LR en F1 y menos alertas falsas; en **test** los tres cumplen recall ≥ 0,85 y **XGBoost** queda primero por F1 y PR-AUC (menos FN que LR, menos FP que RF). Esa elección está en `models/metadata.json` → `selection_criteria`.
 
 ---
 
@@ -47,37 +54,48 @@ XGBoost se fija como modelo oficial de despliegue (candidato principal del dise�
 ```text
 MindTrack/
 ├── app/streamlit_app.py          # Aplicación Streamlit (Prod + Lab)
+├── Dockerfile / docker-compose.yml
 ├── src/                          # Preprocess, predict, reglas, explicación, UI
 ├── models/                       # Pipelines joblib + metadata.json
 ├── data/academic_risk_dataset.csv
 ├── notebooks/                    # Entregable 2 (EDA) y Entregable 3 (comparación)
-├── reports/                      # Tablas CSV + figures PNG del experimento
+├── reports/                      # comparison_validation/test.csv + figures PNG
 ├── scripts/train_and_export.py   # Regenera modelos y reportes
-├── docs/                         # Context master; informe/presentación (añadir luego)
+├── docs/                         # CONTEXTO, DOCKER, guion, informe
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Cómo ejecutar (local)
+## Cómo ejecutar
+
+### Opción A · Docker (recomendado para demo / entrega)
+
+Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
-# 1. Crear entorno e instalar
+docker compose up --build
+```
+
+Navegador: **http://localhost:8501** · Guía detallada: [docs/DOCKER.md](docs/DOCKER.md)
+
+### Opción B · Python local
+
+```bash
 python -m venv .venv
 # Windows:
 .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. (Opcional) Regenerar modelos y gráficas del laboratorio
+# (Opcional) Regenerar modelos y gráficas
 python scripts/train_and_export.py
 
-# 3. Abrir la app
 streamlit run app/streamlit_app.py
 ```
 
-- **Producción:** formulario → preprocess → XGBoost → umbral → recomendaciones.  
-- **Laboratorio:** tablas y PNG ya exportados (misma lógica que Colab Entregable 3); **no reentrena**.
+- **Producción:** formulario → preprocess → modelo en `metadata.json` → umbral → recomendaciones.  
+- **Laboratorio:** `comparison_validation.csv`, `comparison_test.csv` y PNG; **no reentrena**.
 
 ---
 
@@ -108,10 +126,19 @@ Abrir en Colab (tras push a GitHub):
 ## Decisiones de diseño (producto)
 
 1. Formulario de producción **sin** `Academic_Performance_Score`.
-2. Modelo oficial: **XGBoost** + umbral calibrado en Validation.
-3. Laboratorio = **visor** de artefactos del experimento (performante en Streamlit Cloud).
-4. UI en español; nombres técnicos / columnas / modelos en inglés.
-5. Streamlit Cloud se publicará **después** de validar localmente.
+2. Comparación **LR · RF · XGB** en validation y **test**; producción = ganador en **test** (`selection_criteria` en metadata).
+3. Actualmente **XGBoost** (F1 y PR-AUC en test; recall 0,881 · FN 16 · FP 35).
+4. Laboratorio = visor de artefactos; Docker empaqueta la misma app sin reentrenar.
+5. UI en español; columnas y nombres de modelos en inglés.
+
+### Documentación clave
+
+| Archivo | Contenido |
+|---------|-----------|
+| [docs/CONTEXTO_CHAT_Y_PRESENTACION.md](docs/CONTEXTO_CHAT_Y_PRESENTACION.md) | Métricas, defensa oral, arquitectura |
+| [docs/DOCKER.md](docs/DOCKER.md) | Contenedor y troubleshooting |
+| [reports/README.md](reports/README.md) | CSV y figuras del experimento |
+| [docs/CONTEXT_MASTER_PROJECT.md](docs/CONTEXT_MASTER_PROJECT.md) | Diseño maestro del curso |
 
 ---
 

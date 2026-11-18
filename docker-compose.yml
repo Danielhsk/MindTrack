@@ -1,0 +1,22 @@
+# MindTrack — ejecución local con Docker
+# Uso: docker compose up --build
+# App: http://localhost:8501
+
+services:
+  mindtrack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mindtrack:latest
+    container_name: mindtrack-app
+    ports:
+      - "8501:8501"
+    environment:
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    restart: unless-stopped
+    # Solo inferencia: no montar volúmenes de código en producción académica.
+    # Para desarrollo con hot-reload, descomentar:
+    # volumes:
+    #   - ./app:/app/app:ro
+    #   - ./src:/app/src:ro

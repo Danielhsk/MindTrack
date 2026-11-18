@@ -415,24 +415,25 @@ Para clasificación:
 
 Debido al posible desbalance, **Accuracy no será la única métrica de decisión**.
 
-## Etapa 7 — Comparación
+## Etapa 7 — Comparación (export: `reports/comparison_validation.csv`, `comparison_test.csv`)
 
-| Modelo | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
-|---|---:|---:|---:|---:|---:|---:|
-| Logistic Regression | — | — | — | — | — | — |
-| Random Forest | — | — | — | — | — | — |
-| XGBoost | — | — | — | — | — | — |
+| Modelo | Partición | Recall (C1) | F1 | PR-AUC | FN | FP |
+|--------|-----------|------------:|---:|-------:|---:|---:|
+| Logistic Regression | Validation | 0,852 | **0,819** | **0,917** | 20 | **31** |
+| Random Forest | Validation | 0,874 | 0,787 | 0,899 | 17 | 47 |
+| XGBoost | Validation | 0,859 | 0,789 | 0,915 | 19 | 43 |
+| Logistic Regression | Test | 0,852 | 0,801 | 0,918 | 20 | 37 |
+| Random Forest | Test | 0,911 | 0,809 | 0,926 | 12 | 46 |
+| **XGBoost** | **Test** | **0,881** | **0,824** | **0,933** | **16** | **35** |
 
-## Etapa 8 — Selección
+Umbral τ calibrado solo en **validation** (recall ≥ 0,85); **test** sin re-ajuste.
 
-Se priorizarán:
+## Etapa 8 — Selección (producción)
 
-1. F1-score.
-2. Recall de la clase positiva.
-3. Precision.
-4. PR-AUC / ROC-AUC.
-5. Interpretabilidad.
-6. Complejidad.
+1. Cumplir **Recall (C1) ≥ 0,85 en test**.
+2. Ordenar: **F1 → PR-AUC → precisión → menos FP → menos FN**.
+3. Resultado actual: **XGBoost** (`models/metadata.json` → `production_model_key`).
+4. LR lidera en validation; la decisión de despliegue usa **test** (generalización).
 
 ---
 
@@ -609,7 +610,7 @@ El usuario ingresará:
                ↓
 ┌─────────────────────────────┐
 │       MODELO ENTRENADO      │
-│     XGBoost / ganador       │
+│  Modelo producción (metadata)│
 └──────────────┬──────────────┘
                ↓
        ┌───────┴────────┐
@@ -791,6 +792,12 @@ Se compararán:
 - Logistic Regression.
 - Random Forest.
 - XGBoost.
+
+### Implementación y despliegue
+
+- Prototipo **Streamlit** (`app/streamlit_app.py`): PRD + Laboratorio.
+- **Docker** (`Dockerfile`, `docker-compose.yml`, `docs/DOCKER.md`) para demo reproducible.
+- Alternativa: Streamlit Cloud; artefactos en `models/` y `reports/` versionados en git.
 
 ---
 
