@@ -61,7 +61,7 @@ MindTrack/
 ├── notebooks/                    # Entregable 2 (EDA) y Entregable 3 (comparación)
 ├── reports/                      # comparison_validation/test.csv + figures PNG
 ├── scripts/train_and_export.py   # Regenera modelos y reportes
-├── docs/                         # CONTEXTO, DOCKER, informe APA7
+├── docs/                         # CONTEXT_MASTER, DOCKER, informe APA7
 ├── requirements.txt
 └── README.md
 ```
@@ -72,13 +72,22 @@ MindTrack/
 
 ### Opción A · Docker (recomendado para demo / entrega)
 
-Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/) en ejecución.
 
 ```bash
-docker compose up --build
+docker compose up --build -d    # segundo plano
+docker compose ps               # healthy en :8501
+docker compose down             # detener
 ```
 
-Navegador: **http://localhost:8501** · Guía detallada: [docs/DOCKER.md](docs/DOCKER.md)
+| Recurso | Descripción |
+|---------|-------------|
+| `Dockerfile` | Imagen Python 3.12 + dependencias + artefactos |
+| `docker-compose.yml` | Puerto **8501**, healthcheck Streamlit |
+| [docs/DOCKER.md](docs/DOCKER.md) | Build manual, variables, troubleshooting |
+| `.github/workflows/docker-image.yml` | CI verifica que la imagen construye |
+
+Navegador: **http://localhost:8501**
 
 ### Opción B · Python local
 
@@ -135,10 +144,12 @@ Abrir en Colab (tras push a GitHub):
 
 | Archivo | Contenido |
 |---------|-----------|
-| [docs/CONTEXTO_CHAT_Y_PRESENTACION.md](docs/CONTEXTO_CHAT_Y_PRESENTACION.md) | Métricas, defensa oral, arquitectura |
-| [docs/DOCKER.md](docs/DOCKER.md) | Contenedor y troubleshooting |
-| [reports/README.md](reports/README.md) | CSV y figuras del experimento |
 | [docs/CONTEXT_MASTER_PROJECT.md](docs/CONTEXT_MASTER_PROJECT.md) | Diseño maestro del curso |
+| [docs/DOCKER.md](docs/DOCKER.md) | Contenedor y troubleshooting |
+| [reports/README.md](reports/README.md) | CSV y figuras (validation + test) |
+| [docs/Informe_MindTrack_APA7.docx](docs/Informe_MindTrack_APA7.docx) | Informe APA 7 |
+
+**Laboratorio Streamlit:** pestaña LAB → Panorama (KPIs test) y Arena (tablas validation/test).
 
 ---
 
