@@ -27,7 +27,8 @@ MindTrack permite ingresar el perfil de un estudiante (hábitos digitales, sueñ
 | **Split** | 70 % train / 15 % validation / 15 % test · `random_state=42` |
 | **Criterio** | Recall (clase 1) ≥ 0.85; umbral en Validation; **producción elegida por métricas en Test** (F1 → PR-AUC → precisión → menos FP → menos FN) |
 | **App** | Streamlit · **Producción** + **Laboratorio** · Docker opcional (`docker compose up`) |
-| **Despliegue** | Local, [Docker](docs/DOCKER.md) o Streamlit Cloud |
+| **Despliegue** | Local, **Docker Hub**, [Docker](docs/DOCKER.md) o Streamlit Cloud |
+| **Docker Hub** | [danielhsk/mindtrack](https://hub.docker.com/r/danielhsk/mindtrack) · `docker pull danielhsk/mindtrack:latest` |
 
 ### Validation (umbral ajustado por modelo)
 
@@ -54,7 +55,7 @@ En validación gana LR en F1 y menos alertas falsas; en **test** los tres cumple
 ```text
 MindTrack/
 ├── app/streamlit_app.py          # Aplicación Streamlit (Prod + Lab)
-├── Dockerfile / docker-compose.yml
+├── Dockerfile · docker-compose.yml · docker-compose.hub.yml
 ├── src/                          # Preprocess, predict, reglas, explicación, UI
 ├── models/                       # Pipelines joblib + metadata.json
 ├── data/academic_risk_dataset.csv
@@ -70,26 +71,43 @@ MindTrack/
 
 ## Cómo ejecutar
 
-### Opción A · Docker (recomendado para demo / entrega)
+### Opción A · Docker Hub (sin clonar código)
+
+Imagen oficial: **[hub.docker.com/r/danielhsk/mindtrack](https://hub.docker.com/r/danielhsk/mindtrack)**
+
+```bash
+docker pull danielhsk/mindtrack:latest
+docker run --rm -p 8501:8501 danielhsk/mindtrack:latest
+# o con compose:
+docker compose -f docker-compose.hub.yml up -d
+```
+
+### Opción B · Docker desde el repo (build local)
 
 Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/) en ejecución.
 
 ```bash
-docker compose up --build -d    # segundo plano
-docker compose ps               # healthy en :8501
-docker compose down             # detener
+git clone https://github.com/Danielhsk/MindTrack.git
+cd MindTrack
+docker compose up --build -d
+docker compose ps
+docker compose down
 ```
 
-| Recurso | Descripción |
-|---------|-------------|
-| `Dockerfile` | Imagen Python 3.12 + dependencias + artefactos |
-| `docker-compose.yml` | Puerto **8501**, healthcheck Streamlit |
-| [docs/DOCKER.md](docs/DOCKER.md) | Build manual, variables, troubleshooting |
-| `.github/workflows/docker-image.yml` | CI verifica que la imagen construye |
+| Recurso | Ubicación |
+|---------|-----------|
+| Imagen remota | `docker.io/danielhsk/mindtrack:latest` |
+| `Dockerfile` | raíz del repositorio |
+| `docker-compose.yml` | build + tag `danielhsk/mindtrack:latest` |
+| `docker-compose.hub.yml` | solo `pull` de Hub |
+| [docs/DOCKER.md](docs/DOCKER.md) | guía completa |
+| `.github/workflows/docker-publish.yml` | publicación a Docker Hub (secrets del repo) |
 
 Navegador: **http://localhost:8501**
 
-### Opción B · Python local
+**Publicar una versión nueva en Hub (mantenedores):** en GitHub → Actions → *Publish Docker Hub* → Run workflow (requiere secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN`). O en local: `docker login` y `docker push danielhsk/mindtrack:latest`.
+
+### Opción C · Python local
 
 ```bash
 python -m venv .venv

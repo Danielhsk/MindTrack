@@ -2,6 +2,27 @@
 
 Contenedor para ejecutar la aplicación Streamlit con los **modelos y reportes ya versionados** en el repositorio. No entrena al arrancar.
 
+## Docker Hub (imagen publicada)
+
+| Campo | Valor |
+|-------|--------|
+| **Página del proyecto** | https://hub.docker.com/r/danielhsk/mindtrack |
+| **Imagen** | `docker.io/danielhsk/mindtrack:latest` |
+| **Repositorio GitHub** | https://github.com/Danielhsk/MindTrack |
+
+```bash
+docker pull danielhsk/mindtrack:latest
+docker run --rm -p 8501:8501 danielhsk/mindtrack:latest
+```
+
+Con Compose (archivo `docker-compose.hub.yml` en la raíz del repo):
+
+```bash
+docker compose -f docker-compose.hub.yml up -d
+```
+
+**Publicación (mantenedores):** workflow `.github/workflows/docker-publish.yml` con secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN`, o `docker login` + `docker push danielhsk/mindtrack:latest` desde máquina local.
+
 ## Requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS) o Docker Engine + Compose (Linux)

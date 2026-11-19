@@ -7,7 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: mindtrack:latest
+    image: danielhsk/mindtrack:latest
     container_name: mindtrack-app
     ports:
       - "8501:8501"

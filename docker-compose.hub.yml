@@ -1,0 +1,14 @@
+# MindTrack — solo imagen publicada (sin build local)
+# Uso: docker compose -f docker-compose.hub.yml up -d
+# Requiere: docker pull danielhsk/mindtrack:latest
+
+services:
+  mindtrack:
+    image: danielhsk/mindtrack:latest
+    container_name: mindtrack-app
+    ports:
+      - "8501:8501"
+    environment:
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    restart: unless-stopped
