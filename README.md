@@ -28,7 +28,7 @@ MindTrack permite ingresar el perfil de un estudiante (hábitos digitales, sueñ
 | **Criterio** | Recall (clase 1) ≥ 0.85; umbral en Validation; **producción elegida por métricas en Test** (F1 → PR-AUC → precisión → menos FP → menos FN) |
 | **App** | Streamlit · **Producción** + **Laboratorio** · Docker opcional (`docker compose up`) |
 | **Despliegue** | Local, **Docker Hub**, [Docker](docs/DOCKER.md) o Streamlit Cloud |
-| **Docker Hub** | [danielhsk/mindtrack](https://hub.docker.com/r/danielhsk/mindtrack) · `docker pull danielhsk/mindtrack:latest` |
+| **Docker Hub** | [danielhsk/mindtrack](https://hub.docker.com/r/danielhsk/mindtrack) · `latest` y `1.0.0` publicadas |
 
 ### Validation (umbral ajustado por modelo)
 

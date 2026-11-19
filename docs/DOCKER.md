@@ -7,7 +7,8 @@ Contenedor para ejecutar la aplicación Streamlit con los **modelos y reportes y
 | Campo | Valor |
 |-------|--------|
 | **Página del proyecto** | https://hub.docker.com/r/danielhsk/mindtrack |
-| **Imagen** | `docker.io/danielhsk/mindtrack:latest` |
+| **Imagen** | `docker.io/danielhsk/mindtrack:latest` (también `1.0.0`) |
+| **Digest (latest)** | `sha256:b899b09dd94bd25b659beb980d2b688f42512e9ec0f06004e88ca2fa165cecc3` |
 | **Repositorio GitHub** | https://github.com/Danielhsk/MindTrack |
 
 ```bash
