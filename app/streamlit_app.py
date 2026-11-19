@@ -71,7 +71,6 @@ st.set_page_config(
 )
 
 st.markdown(inject_css(), unsafe_allow_html=True)
-init_session_defaults()
 
 LAB_SECTIONS = [
     "Panorama",
@@ -87,7 +86,12 @@ def cached_dataset() -> pd.DataFrame:
 
 
 def preset_values() -> dict:
-    return EXAMPLE_PROFILES[st.session_state.form_preset]["values"]
+    init_session_defaults()
+    preset_key = st.session_state.get("form_preset", "neutral")
+    if preset_key not in EXAMPLE_PROFILES:
+        preset_key = "neutral"
+        st.session_state.form_preset = preset_key
+    return EXAMPLE_PROFILES[preset_key]["values"]
 
 
 def production_form() -> dict | None:
@@ -524,6 +528,7 @@ def lab_arena(comparison: pd.DataFrame, meta: dict) -> None:
 
 
 def render_lab() -> None:
+    init_session_defaults()
     hero(
         "MindTrack Insight",
         "Recorre los datos del estudio, cómo se construyó el modelo y cómo se compararon "
@@ -551,6 +556,7 @@ def render_lab() -> None:
 
 
 def main() -> None:
+    init_session_defaults()
     prod_label = _production_label()
     render_app_header(prod_label)
     env = st.session_state.get("mindtrack_env", "PRD")
