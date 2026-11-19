@@ -170,7 +170,8 @@ def _production_label() -> str:
     meta_path = MODELS_DIR / "metadata.json"
     if not meta_path.exists():
         return "XGBoost"
-    return json.loads(meta_path.read_text(encoding="utf-8")).get("production_model_label", "XGBoost")
+    raw = json.loads(meta_path.read_text(encoding="utf-8")).get("production_model_label", "XGBoost")
+    return str(raw) if raw else "XGBoost"
 
 
 def render_prd() -> None:

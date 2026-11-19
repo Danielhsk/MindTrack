@@ -11,8 +11,8 @@ import streamlit as st
 from src.config import COLORS
 
 
-def _esc(text: str) -> str:
-    return html.escape(text, quote=True)
+def _esc(text: str | None) -> str:
+    return html.escape("" if text is None else str(text), quote=True)
 
 
 def eyebrow(text: str) -> None:
@@ -53,20 +53,26 @@ def _resolve_env(choice: str | None) -> str:
 def _render_env_widget() -> str:
     """PRD/LAB control (main area)."""
     default = _resolve_env(None)
+    choice = None
     if hasattr(st, "segmented_control"):
-        choice = st.segmented_control(
-            "env_switch",
-            options=["PRD", "LAB"],
-            default=default,
-            label_visibility="collapsed",
-        )
-    else:
+        try:
+            choice = st.segmented_control(
+                "Vista",
+                options=["PRD", "LAB"],
+                default=default,
+                label_visibility="collapsed",
+                key="mindtrack_env_seg",
+            )
+        except TypeError:
+            choice = None
+    if choice is None:
         choice = st.radio(
-            "env_switch",
+            "Vista",
             options=["PRD", "LAB"],
             index=0 if default == "PRD" else 1,
             horizontal=True,
             label_visibility="collapsed",
+            key="mindtrack_env_radio",
         )
     env = _resolve_env(choice)
     st.session_state.mindtrack_env = env
@@ -75,10 +81,10 @@ def _render_env_widget() -> str:
 
 def render_app_header(production_model_label: str = "XGBoost") -> str:
     """Barra superior: marca + switch PRD/LAB (sin sidebar)."""
-    prod = _esc(production_model_label)
+    prod = _esc(str(production_model_label or "XGBoost"))
     with st.container(border=True):
         st.markdown('<span class="mt-appbar-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
-        c_brand, c_switch, c_meta = st.columns([1.45, 0.48, 1.05], gap="small")
+        c_brand, c_switch, c_meta = st.columns([1.45, 0.48, 1.05])
         with c_brand:
             st.markdown(
                 """
