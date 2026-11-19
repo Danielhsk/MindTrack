@@ -321,9 +321,12 @@ def render_prd() -> None:
 
 def lab_panorama(meta: dict) -> None:
     test = meta.get("test_metrics_production", {})
+    test_all = meta.get("test_metrics_all", [])
     val = meta.get("validation_metrics", [])
+    sel = meta.get("selection_criteria", {})
     prod_label = meta.get("production_model_label", "XGBoost")
     prod_val = next((m for m in val if m["Modelo"] == prod_label), {})
+    val_leader = sel.get("validation_winner_label", "—")
     risk_pct = cached_dataset()[TARGET].mean() * 100
     kpi_grid(
         [
@@ -341,24 +344,49 @@ def lab_panorama(meta: dict) -> None:
             ),
             (
                 f"{prod_val.get('Recall (C1)', 0):.3f}",
-                f"Detección · validación ({prod_label})",
-                "De cada 100 estudiantes en verdadero riesgo, cuántos identifica el modelo "
-                "en la parte de datos reservada para afinar (validación).",
+                f"Recall · val. ({prod_label})",
+                "Umbral calibrado solo en validación (recall ≥ 0,85). "
+                f"Líder F1 en validación: {val_leader}.",
             ),
             (
                 f"{test.get('Recall (C1)', 0):.3f}",
-                "Detección · prueba",
-                "Misma idea en el tramo de datos nunca visto al entrenar (prueba final), "
-                "para comprobar que el resultado se sostiene.",
+                f"Recall · test ({prod_label})",
+                "Prueba final con τ fijado en validación (sin re-ajuste).",
+            ),
+            (
+                f"{test.get('F1-Score (C1)', 0):.3f}",
+                "F1 · test (producción)",
+                "Criterio principal para elegir el motor entre modelos que cumplen recall en test.",
+            ),
+            (
+                f"{test.get('PR-AUC', 0):.3f}",
+                "PR-AUC · test",
+                "Capacidad de ranking del riesgo en la partición de prueba.",
             ),
         ]
     )
     insight_note(
-        f"Experimento exportado · split 70/15/15 · seed {meta['random_state']} · "
-        f"Recall objetivo {meta['recall_target']} · producción = {prod_label}.",
-        "Estos números vienen del entrenamiento ya guardado en el repositorio; "
-        "esta pantalla solo los muestra, no vuelve a entrenar el modelo.",
+        f"Split 70/15/15 · seed {meta['random_state']} · recall ≥ {meta['recall_target']} · "
+        f"producción = {prod_label} (test) · Docker: docs/DOCKER.md",
+        "Validación calibra umbrales; test compara LR, RF y XGB con el mismo protocolo.",
     )
+    if test_all:
+        section_heading(
+            "Resumen · test (tres modelos)",
+            "Métricas en `reports/comparison_test.csv` · FN/FP con umbrales de validación.",
+        )
+        show_cols = [
+            "Modelo",
+            "Recall (C1)",
+            "F1-Score (C1)",
+            "PR-AUC",
+            "FN",
+            "FP",
+            "Cumple Recall",
+        ]
+        df_test = pd.DataFrame(test_all)
+        df_test = df_test[[c for c in show_cols if c in df_test.columns]]
+        st.dataframe(df_test, use_container_width=True, hide_index=True)
 
 
 def lab_huella() -> None:
