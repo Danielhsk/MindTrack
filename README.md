@@ -61,7 +61,7 @@ MindTrack/
 ├── notebooks/                    # Entregable 2 (EDA) y Entregable 3 (comparación)
 ├── reports/                      # comparison_validation/test.csv + figures PNG
 ├── scripts/train_and_export.py   # Regenera modelos y reportes
-├── docs/                         # CONTEXTO, DOCKER, guion, informe
+├── docs/                         # CONTEXTO, DOCKER, informe APA7
 ├── requirements.txt
 └── README.md
 ```

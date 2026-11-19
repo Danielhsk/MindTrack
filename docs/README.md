@@ -3,8 +3,7 @@
 | Archivo | Contenido |
 |---------|-----------|
 | [CONTEXT_MASTER_PROJECT.md](CONTEXT_MASTER_PROJECT.md) | Diseño maestro (alcance, RF/RNF, arquitectura) |
-| [CONTEXTO_CHAT_Y_PRESENTACION.md](CONTEXTO_CHAT_Y_PRESENTACION.md) | Métricas validation/test, guion de defensa, FAQ |
-| [GUION_PRESENTACION_MindTrack.md](GUION_PRESENTACION_MindTrack.md) | Diapositivas y narrativa oral |
+| [CONTEXTO_CHAT_Y_PRESENTACION.md](CONTEXTO_CHAT_Y_PRESENTACION.md) | Métricas validation/test, defensa oral, FAQ |
 | [DOCKER.md](DOCKER.md) | Ejecución con Docker / Compose |
 | [pipeline_xgboost_explicacion.md](pipeline_xgboost_explicacion.md) | Flujo de inferencia del motor en producción (XGBoost) |
 
