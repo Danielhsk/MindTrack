@@ -1,5 +1,9 @@
 """Shared Streamlit CSS — MindTrack navy / white theme."""
 
+from __future__ import annotations
+
+import streamlit as st
+
 from src.config import COLORS
 
 
@@ -7,7 +11,6 @@ def inject_css() -> str:
     green_on = "#22C55E"
     track_off = "#E8ECF1"
     return f"""
-<!-- MindTrack UI · header bar v3 (sin sidebar) -->
 <style>
     section[data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
@@ -164,6 +167,7 @@ def inject_css() -> str:
     }}
     .mt-disclaimer {{
         font-size: 0.82rem;
+        line-height: 1.45;
         color: {COLORS["slate"]};
         border-left: 3px solid {COLORS["navy"]};
         padding-left: 0.75rem;
@@ -422,10 +426,13 @@ def inject_css() -> str:
         color: {COLORS["navy"]};
     }}
     .mt-kpi span {{
+        display: block;
+        margin-top: 0.35rem;
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: {COLORS["slate"]};
+        line-height: 1.25;
     }}
     .mt-tip {{
         position: relative;
@@ -1068,3 +1075,12 @@ def inject_css() -> str:
     }}
 </style>
 """
+
+
+def apply_theme() -> None:
+    """Inject global MindTrack CSS (Streamlit 1.30+ prefers st.html for styles)."""
+    payload = inject_css()
+    if hasattr(st, "html"):
+        st.html(payload)
+    else:
+        st.markdown(payload, unsafe_allow_html=True)
