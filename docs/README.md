@@ -6,6 +6,7 @@
 | [DOCKER.md](DOCKER.md) | Contenedor Docker / Compose y troubleshooting |
 | [pipeline_xgboost_explicacion.md](pipeline_xgboost_explicacion.md) | Flujo de inferencia del motor en producción |
 | [Informe_MindTrack_APA7.docx](Informe_MindTrack_APA7.docx) | Informe del proyecto (Word APA 7) |
+| [MindTrack_Presentacion.pdf](MindTrack_Presentacion.pdf) | Presentación del proyecto (PDF) |
 
 ## Resultados del experimento (referencia rápida)
 
@@ -53,6 +54,6 @@ Regenerar informe completo (opcional, reescribe el .docx):
 python scripts/generate_informe_apa7.py
 ```
 
-## Pendiente
+## Presentación
 
-- Presentación final (PDF / PPT) en esta carpeta cuando esté lista.
+Descargar: [MindTrack_Presentacion.pdf](MindTrack_Presentacion.pdf)
