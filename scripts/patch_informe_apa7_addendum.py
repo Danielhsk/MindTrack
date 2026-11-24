@@ -10,7 +10,7 @@ from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "Informe_MindTrack_APA7.docx"
+OUT = ROOT / "docs" / "Informe final MindTrack.docx"
 TEST_CSV = ROOT / "reports" / "comparison_test.csv"
 MARKER = "ADDENDUM_COMPARACION_TEST_2026"
 

@@ -12,7 +12,7 @@ from docx.shared import Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGO = ROOT / "docs" / "assets" / "ecci-logo.jpg"
-OUT = ROOT / "docs" / "Informe_MindTrack_APA7.docx"
+OUT = ROOT / "docs" / "Informe final MindTrack.docx"
 ENTREGABLE2_CANDIDATES = [
     Path(
         r"C:\Users\dsher\Downloads\MindTrack - Entregable 2_ Validación, "

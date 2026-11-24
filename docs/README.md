@@ -5,7 +5,7 @@
 | [CONTEXT_MASTER_PROJECT.md](CONTEXT_MASTER_PROJECT.md) | Diseño maestro (alcance, RF/RNF, arquitectura) |
 | [DOCKER.md](DOCKER.md) | Contenedor Docker / Compose y troubleshooting |
 | [pipeline_xgboost_explicacion.md](pipeline_xgboost_explicacion.md) | Flujo de inferencia del motor en producción |
-| [Informe_MindTrack_APA7.docx](Informe_MindTrack_APA7.docx) | Informe del proyecto (Word APA 7) |
+| [Informe final MindTrack.docx](Informe%20final%20MindTrack.docx) | Informe final MindTrack |
 | [MindTrack_Presentacion.pdf](MindTrack_Presentacion.pdf) | Presentación del proyecto (PDF) |
 
 ## Resultados del experimento (referencia rápida)

@@ -165,7 +165,7 @@ Abrir en Colab (tras push a GitHub):
 | [docs/CONTEXT_MASTER_PROJECT.md](docs/CONTEXT_MASTER_PROJECT.md) | Diseño maestro del curso |
 | [docs/DOCKER.md](docs/DOCKER.md) | Contenedor y troubleshooting |
 | [reports/README.md](reports/README.md) | CSV y figuras (validation + test) |
-| [docs/Informe_MindTrack_APA7.docx](docs/Informe_MindTrack_APA7.docx) | Informe APA 7 |
+| [docs/Informe final MindTrack.docx](docs/Informe%20final%20MindTrack.docx) | Informe final MindTrack |
 
 **Laboratorio Streamlit:** pestaña LAB → Panorama (KPIs test) y Arena (tablas validation/test).
 
