@@ -63,15 +63,6 @@ from src.ui_components import (
 )
 from src.ui_theme import apply_theme
 
-st.set_page_config(
-    page_title="MindTrack",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-apply_theme()
-
 LAB_SECTIONS = [
     "Panorama",
     "Huella de datos",
@@ -556,6 +547,20 @@ def render_lab() -> None:
 
 
 def main() -> None:
+    # apply_theme debe correr aquí (no al importar el módulo): Cloud arranca
+    # desde streamlit_app.py raíz e importa esta función; los st.* de módulo
+    # en el import no llegan al documento de la app.
+    try:
+        st.set_page_config(
+            page_title="MindTrack",
+            page_icon="🧠",
+            layout="wide",
+            initial_sidebar_state="collapsed",
+        )
+    except Exception:
+        # Ya configurado por el entrypoint raíz en Streamlit Cloud.
+        pass
+    apply_theme()
     init_session_defaults()
     prod_label = _production_label()
     render_app_header(prod_label)
