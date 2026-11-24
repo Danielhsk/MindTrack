@@ -1078,9 +1078,9 @@ def inject_css() -> str:
 
 
 def apply_theme() -> None:
-    """Inject global MindTrack CSS (Streamlit 1.30+ prefers st.html for styles)."""
-    payload = inject_css()
-    if hasattr(st, "html"):
-        st.html(payload)
-    else:
-        st.markdown(payload, unsafe_allow_html=True)
+    """Inject global MindTrack CSS into the app document.
+
+    Must use ``st.markdown(..., unsafe_allow_html=True)``. ``st.html`` sandboxes
+    the payload, so ``<style>`` never reaches the page and the UI looks unstyled.
+    """
+    st.markdown(inject_css(), unsafe_allow_html=True)
