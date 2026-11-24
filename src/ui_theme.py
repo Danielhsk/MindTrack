@@ -1077,10 +1077,47 @@ def inject_css() -> str:
 """
 
 
-def apply_theme() -> None:
-    """Inject global MindTrack CSS into the app document.
+def _css_body() -> str:
+    """Return raw CSS rules without the wrapping ``<style>`` tag."""
+    payload = inject_css().strip()
+    if payload.startswith("<style>") and payload.endswith("</style>"):
+        return payload[len("<style>") : -len("</style>")].strip()
+    return payload
 
-    Must use ``st.markdown(..., unsafe_allow_html=True)``. ``st.html`` sandboxes
-    the payload, so ``<style>`` never reaches the page and the UI looks unstyled.
+
+def apply_theme() -> None:
+    """Inject global MindTrack CSS into the Streamlit page document.
+
+    ``st.html`` sandboxes styles. Some Cloud runtimes also strip ``<style>`` from
+    ``st.markdown``. We inject both ways, plus a parent-document script so the
+    theme reaches the real app DOM (header, form cards, navy palette).
     """
-    st.markdown(inject_css(), unsafe_allow_html=True)
+    import json
+
+    import streamlit.components.v1 as components
+
+    css = _css_body()
+    st.markdown(f"<style>\n{css}\n</style>", unsafe_allow_html=True)
+
+    # Fallback for Streamlit Cloud: append into the parent document <head>.
+    css_js = json.dumps(css)
+    components.html(
+        f"""
+        <script>
+        (function () {{
+          const css = {css_js};
+          const doc = window.parent.document;
+          const id = "mindtrack-theme-css";
+          const prev = doc.getElementById(id);
+          if (prev) prev.remove();
+          const style = doc.createElement("style");
+          style.id = id;
+          style.type = "text/css";
+          style.appendChild(doc.createTextNode(css));
+          doc.head.appendChild(style);
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
