@@ -8,5 +8,5 @@ matplotlib>=3.8
 seaborn>=0.13
 plotly>=5.18
 streamlit>=1.45,<2
-# rebuild trigger: theme CSS parent inject 2026-11-24
+# rebuild trigger: theme inside main() 2026-11-24b
 Pillow>=10.0

@@ -31,11 +31,11 @@ def hero(title: str, subtitle: str, badge: str | None = None) -> None:
         badge_html = ""
     st.markdown(
         f"""
-        <div class="mt-hero{badge_mod}">
+        <div class="mt-hero{badge_mod}" style="margin:0.35rem 0 1.1rem 0;">
             <motion-div class="mt-hero-glow" aria-hidden="true"></div>
             {badge_html}
-            <h1>{_esc(title)}</h1>
-            <p>{_esc(subtitle)}</p>
+            <h1 style="margin:0.35rem 0 0.45rem 0;font-size:clamp(1.55rem,2.4vw,2rem);font-weight:800;color:#0F172A;line-height:1.2;">{_esc(title)}</h1>
+            <p style="margin:0;max-width:52rem;color:#475569;font-size:0.98rem;line-height:1.55;">{_esc(subtitle)}</p>
         </div>
         """.replace("motion-div", "div"),
         unsafe_allow_html=True,
@@ -88,17 +88,19 @@ def render_app_header(production_model_label: str = "XGBoost") -> str:
         with c_brand:
             st.markdown(
                 """
-                <div class="mt-appbar-brand">
-                    <div class="mt-appbar-mark" aria-hidden="true">
-                        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <div class="mt-appbar-brand" style="display:flex;align-items:center;gap:0.65rem;">
+                    <div class="mt-appbar-mark" aria-hidden="true"
+                         style="width:42px;height:42px;flex-shrink:0;line-height:0;">
+                        <svg viewBox="0 0 32 32" width="42" height="42" fill="none" aria-hidden="true"
+                             style="display:block;width:42px;height:42px;">
                             <circle cx="16" cy="16" r="14" stroke="#94A3B8" stroke-width="1.5"/>
                             <path d="M10 19c1.2-4 3.5-6 6-6s4.8 2 6 6" stroke="#64748B" stroke-width="1.6" stroke-linecap="round"/>
-                            <circle cx="16" cy="20" r="2" fill="#6366F1"/>
+                            <circle cx="16" cy="20" r="2" fill="#1F3A5F"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="mt-appbar-title">MindTrack</div>
-                        <div class="mt-appbar-sub">Riesgo académico · hábitos y bienestar</div>
+                        <div class="mt-appbar-title" style="font-size:1.22rem;font-weight:800;color:#0F172A;line-height:1.15;">MindTrack</div>
+                        <div class="mt-appbar-sub" style="font-size:0.78rem;color:#64748B;margin-top:0.1rem;">Riesgo académico · hábitos y bienestar</div>
                     </div>
                 </div>
                 """,
@@ -182,18 +184,24 @@ def render_sidebar_status(production_model_label: str = "XGBoost") -> None:
 
 
 def panel_heading(title: str, subtitle: str = "") -> None:
-    sub = f"<small>{_esc(subtitle)}</small>" if subtitle else ""
+    sub = (
+        f'<small style="display:block;margin-top:0.15rem;font-size:0.78rem;color:#64748B;font-weight:500;">'
+        f"{_esc(subtitle)}</small>"
+        if subtitle
+        else ""
+    )
     st.markdown(
-        f'<motion-div class="mt-panel-head"><span>{_esc(title)}</span>{sub}</motion-div>'.replace(
-            "motion-div", "div"
-        ),
+        f'<motion-div class="mt-panel-head" style="margin:0 0 0.65rem 0;">'
+        f'<span style="font-size:0.95rem;font-weight:700;color:#1F3A5F;">{_esc(title)}</span>'
+        f"{sub}</motion-div>".replace("motion-div", "div"),
         unsafe_allow_html=True,
     )
 
 
 def profile_chips_header() -> None:
     st.markdown(
-        '<p class="mt-chip-label">Perfiles de ejemplo</p>',
+        '<p class="mt-chip-label" style="margin:0.85rem 0 0.45rem 0;font-size:0.8rem;font-weight:700;'
+        'letter-spacing:0.04em;text-transform:uppercase;color:#64748B;">Perfiles de ejemplo</p>',
         unsafe_allow_html=True,
     )
 
