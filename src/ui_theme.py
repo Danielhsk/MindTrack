@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
+
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.config import COLORS
 
@@ -11,6 +14,7 @@ def inject_css() -> str:
     green_on = "#22C55E"
     track_off = "#E8ECF1"
     return f"""
+<!-- MindTrack UI · header bar v3 (sin sidebar) -->
 <style>
     section[data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
@@ -167,7 +171,6 @@ def inject_css() -> str:
     }}
     .mt-disclaimer {{
         font-size: 0.82rem;
-        line-height: 1.45;
         color: {COLORS["slate"]};
         border-left: 3px solid {COLORS["navy"]};
         padding-left: 0.75rem;
@@ -426,13 +429,10 @@ def inject_css() -> str:
         color: {COLORS["navy"]};
     }}
     .mt-kpi span {{
-        display: block;
-        margin-top: 0.35rem;
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: {COLORS["slate"]};
-        line-height: 1.25;
     }}
     .mt-tip {{
         position: relative;
@@ -1077,35 +1077,19 @@ def inject_css() -> str:
 """
 
 
-def _css_body() -> str:
-    """Return raw CSS rules without the wrapping ``<style>`` tag."""
-    payload = inject_css().strip()
-    if payload.startswith("<style>") and payload.endswith("</style>"):
-        return payload[len("<style>") : -len("</style>")].strip()
-    return payload
-
-
 def apply_theme() -> None:
-    """Inject global MindTrack CSS into the Streamlit page document.
+    """Apply MindTrack CSS to the live page (markdown + parent-document fallback)."""
+    payload = inject_css()
+    st.markdown(payload, unsafe_allow_html=True)
 
-    ``st.html`` sandboxes styles. Some Cloud runtimes also strip ``<style>`` from
-    ``st.markdown``. We inject both ways, plus a parent-document script so the
-    theme reaches the real app DOM (header, form cards, navy palette).
-    """
-    import json
-
-    import streamlit.components.v1 as components
-
-    css = _css_body()
-    st.markdown(f"<style>\n{css}\n</style>", unsafe_allow_html=True)
-
-    # Fallback for Streamlit Cloud: append into the parent document <head>.
-    css_js = json.dumps(css)
+    start = payload.find("<style>")
+    end = payload.rfind("</style>")
+    css = payload[start + len("<style>") : end].strip() if start >= 0 and end > start else payload
     components.html(
         f"""
         <script>
         (function () {{
-          const css = {css_js};
+          const css = {json.dumps(css)};
           const doc = window.parent.document;
           const id = "mindtrack-theme-css";
           const prev = doc.getElementById(id);

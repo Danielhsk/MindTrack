@@ -297,21 +297,6 @@ def content_divider() -> None:
     st.markdown('<hr class="mt-divider" />', unsafe_allow_html=True)
 
 
-def render_prd_disclaimer(accuracy: float | None = None) -> None:
-    """Aviso legal PRD con exactitud global en test (metadata)."""
-    lead = ""
-    if accuracy is not None and 0 <= accuracy <= 1:
-        pct = f"{accuracy * 100:.1f}".replace(".", ",")
-        lead = f"El modelo tiene una exactitud del <strong>{pct}%</strong>. "
-    st.markdown(
-        "<div class='mt-disclaimer'>"
-        f"{lead}"
-        "Prototipo académico — no sustituye acompañamiento institucional."
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-
 def init_session_defaults() -> None:
     if "mindtrack_env" not in st.session_state:
         st.session_state.mindtrack_env = "PRD"
@@ -365,7 +350,7 @@ def kpi_grid(cards: Iterable[tuple[str, str, str]]) -> None:
         ac = accents[i % len(accents)]
         blocks.append(
             f'<div class="mt-kpi mt-kpi-{ac} mt-tip" data-tip="{_esc(tip)}">'
-            f"<b>{_esc(value)}</b><br/><span>{_esc(label)}</span></div>"
+            f"<b>{_esc(value)}</b><span>{_esc(label)}</span></div>"
         )
     st.markdown(
         f'<div class="mt-kpi-grid">{"".join(blocks)}</div>',
