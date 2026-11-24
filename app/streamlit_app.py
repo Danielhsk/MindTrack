@@ -57,7 +57,6 @@ from src.ui_components import (
     render_insight_nav,
     render_panel_opinions,
     render_verdict_block,
-    render_prd_disclaimer,
     render_static_figure_gallery,
     section_heading,
     timeline_block,
@@ -177,21 +176,6 @@ def _production_label() -> str:
         return "XGBoost"
     raw = json.loads(meta_path.read_text(encoding="utf-8")).get("production_model_label", "XGBoost")
     return str(raw) if raw else "XGBoost"
-
-
-def _test_accuracy(metrics: dict) -> float | None:
-    """Exactitud global (TP+TN) / total en la partición de test exportada."""
-    keys = ("TP", "TN", "FP", "FN")
-    if not all(k in metrics for k in keys):
-        return None
-    try:
-        tp, tn, fp, fn = (int(metrics[k]) for k in keys)
-    except (TypeError, ValueError):
-        return None
-    total = tp + tn + fp + fn
-    if total <= 0:
-        return None
-    return (tp + tn) / total
 
 
 def render_prd() -> None:
@@ -333,9 +317,10 @@ def render_prd() -> None:
         "y las recomendaciones mostradas arriba.",
     )
     st.markdown(conclusion)
-    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    test_prod = meta.get("test_metrics_production", {})
-    render_prd_disclaimer(_test_accuracy(test_prod))
+    st.markdown(
+        "<div class='mt-disclaimer'>Prototipo académico — no sustituye acompañamiento institucional.</div>",
+        unsafe_allow_html=True,
+    )
     page_footer("PRD")
 
 
